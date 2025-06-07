@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,16 +21,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-tw6nwts6hnsfz#3f(e_sr17z*l*8kdt+2icwy^6j%*-^fv+opc'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-tw6nwts6hnsfz#3f(e_sr17z*l*8kdt+2icwy^6j%*-^fv+opc')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['vorp.onrender.com', 'localhost', '127.0.0.1']
 
 # Authentication settings
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+
+# OpenAI API Configuration
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')  # Set this in your environment or on Render
 
 # Application definition
 
@@ -85,10 +89,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# OpenAI API Configuration
-OPENAI_API_KEY = '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'
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
