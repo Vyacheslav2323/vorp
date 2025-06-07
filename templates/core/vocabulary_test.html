@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vocabulary Test{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Vocabulary Test with Individual Word Translations</h2>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <p class="lead">
+                        Enter Korean text below to analyze it. Each word will show its individual translation on hover:
+                    </p>
+                    <ul>
+                        <li><span class="word-unknown">Unknown words</span> - Hover to see detailed English meanings</li>
+                        <li><span class="word-learning">Learning words</span> - Hover to see detailed English meanings</li>
+                        <li>Learned words - No highlighting (you already know these)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <form method="post" action="{% url 'vocabulary_test' %}" id="analysis-form">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    <label for="text-input">Enter text:</label>
+                    <textarea id="text-input" name="text" class="form-control" rows="8">{{ original_text }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" id="analyze-btn">Analyze</button>
+            </form>
+            
+            {% if highlighted_html %}
+            <div class="mt-4">
+                <!-- Word Analysis Section -->
+                <div class="word-analysis-section">
+                    <h4 class="word-analysis-header">
+                        <i class="bi bi-search"></i> Word-by-Word Analysis:
+                    </h4>
+                    <p class="word-analysis-instruction">Hover over highlighted words to see their individual meanings</p>
+                <div class="card">
+                    <div class="card-body text-output">
+                        {{ highlighted_html|safe }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-section">
+                    <h5>Word Statistics:</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h6>Unknown Words</h6>
+                                    <h3>{{ stats.unknown }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body text-center">
+                                    <h6>Learning Words</h6>
+                                    <h3>{{ stats.learning }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6>Learned Words</h6>
+                                    <h3>{{ stats.learned }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add translate missing words button (if needed) -->
+                <div class="mt-3">
+                    <button type="button" class="btn translate-remaining-btn" id="translate-all-btn">
+                        <i class="bi bi-translate"></i> Translate Missing Words
+                    </button>
+                    <small class="translate-remaining-note">Only for words without translations from analysis</small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Only load the word_translations.js - removed vocabulary.js to prevent conflicts -->
+<script src="{% static 'js/word_translations.js' %}"></script>
+
+<!-- Add word click functionality for vocabulary updates -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Template script: DOM Content Loaded');
+    
+    // Add click handler for translate all button
+    const translateAllBtn = document.getElementById('translate-all-btn');
+    if (translateAllBtn) {
+        translateAllBtn.addEventListener('click', handleTranslateAllClick);
+    }
+    
+    // Set up word click handlers for vocabulary status updates
+    const textOutputContainer = document.querySelector('.text-output');
+    if (textOutputContainer) {
+        console.log('📋 Setting up word click handlers');
+        textOutputContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('word-unknown')) {
+                const word = event.target.dataset.word;
+                // Try multiple ways to get vocabulary form (data-vocabulary-form becomes vocabularyForm in dataset)
+                const vocabularyForm = event.target.dataset.vocabularyForm || 
+                                     event.target.getAttribute('data-vocabulary-form') ||
+                                     word; // fallback to word itself
+                const currentStatus = event.target.dataset.status;
+                const translation = event.target.dataset.translation;
+                
+                console.log(`🔍 Word clicked debug:`);
+                console.log(`  - word: "${word}"`);
+                console.log(`  - vocabularyForm (dataset): "${event.target.dataset.vocabularyForm}"`);
+                console.log(`  - vocabularyForm (getAttribute): "${event.target.getAttribute('data-vocabulary-form')}"`);
+                console.log(`  - final vocabularyForm: "${vocabularyForm}"`);
+                console.log(`  - status: "${currentStatus}"`);
+                console.log(`  - translation: "${translation}"`);
+                
+                updateWordStatusWithVocabularyForm(word, vocabularyForm, currentStatus, event.target);
+            }
+        });
+    }
+});
+
+function handleTranslateAllClick() {
+    const { sourceLang, targetLang } = getLanguageSettings();
+    const textOutput = document.querySelector('.text-output');
+    const text = textOutput ? textOutput.textContent : '';
+    fetchAllTranslations(text, sourceLang, targetLang);
+}
+
+function getLanguageSettings() {
+    // Always use Korean → English
+    return { sourceLang: 'ko', targetLang: 'en' };
+}
+
+// Word status update functions (from vocabulary.js)
+function updateWordStatusWithVocabularyForm(word, vocabularyForm, currentStatus, element) {
+    if (currentStatus === 'unknown') {
+        element.classList.remove('word-unknown');
+        element.classList.add('word-learning');
+        element.dataset.status = 'learning';
+        
+        // Get translation from the element
+        const translation = element.dataset.translation;
+        console.log(`📝 Translation from element: "${translation}"`);
+        
+        updateAllWordsWithSameVocabularyForm(vocabularyForm, 'learning');
+        console.log(`✅ Updated word "${word}" (vocabulary_form: ${vocabularyForm}) to learning status`);
+        
+        updateStats();
+        updateWordStatusInDatabase(word, vocabularyForm, currentStatus, translation);
+    }
+}
+
+function updateAllWordsWithSameVocabularyForm(vocabularyForm, newStatus) {
+    const wordsWithSameVocabForm = document.querySelectorAll(`[data-vocabulary-form="${vocabularyForm}"]`);
+    
+    wordsWithSameVocabForm.forEach(wordElement => {
+        wordElement.classList.remove('word-unknown', 'word-learning', 'word-learned');
+        wordElement.classList.add(`word-${newStatus}`);
+        wordElement.dataset.status = newStatus;
+    });
+    
+    console.log(`✅ Updated ${wordsWithSameVocabForm.length} words with vocabulary_form "${vocabularyForm}" to status "${newStatus}"`);
+}
+
+function updateWordStatusInDatabase(word, vocabularyForm, currentStatus, translation) {
+    const language = 'ko';
+    
+    console.log(`📤 Sending to server: word="${word}", vocabulary_form="${vocabularyForm}", translation="${translation}"`);
+    
+    fetch('/classification/update-word-status/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            word: word,
+            vocabulary_form: vocabularyForm,
+            current_status: currentStatus,
+            language: language,
+            translation: translation
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log(`✅ Server response: word="${data.word}" saved with vocabulary_form="${data.vocabulary_form}"`);
+            updateAllWordsWithSameVocabularyForm(data.vocabulary_form, data.new_status);
+            
+            if (data.stats) {
+                updateStatsFromServer(data.stats);
+            }
+        } else {
+            console.error(`❌ Error updating word status: ${data.error}`);
+            updateAllWordsWithSameVocabularyForm(vocabularyForm, currentStatus);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error updating word status:', error);
+        updateAllWordsWithSameVocabularyForm(vocabularyForm, currentStatus);
+    });
+}
+
+function updateStats() {
+    const unknownCount = document.querySelectorAll('.word-unknown').length;
+    const learningCount = document.querySelectorAll('.word-learning').length;
+    
+    const unknownStat = document.querySelector('.card.bg-success h3');
+    const learningStat = document.querySelector('.card.bg-warning h3');
+    
+    if (unknownStat) unknownStat.textContent = unknownCount;
+    if (learningStat) learningStat.textContent = learningCount;
+}
+
+function updateStatsFromServer(stats) {
+    const unknownStat = document.querySelector('.card.bg-success h3');
+    const learningStat = document.querySelector('.card.bg-warning h3');
+    const learnedStat = document.querySelector('.card.bg-light h3');
+    
+    if (unknownStat) unknownStat.textContent = stats.unknown || 0;
+    if (learningStat) learningStat.textContent = stats.learning || 0;
+    if (learnedStat) learnedStat.textContent = stats.learned || 0;
+}
+</script>
+{% endblock %} 

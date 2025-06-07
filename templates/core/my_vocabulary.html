@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Vocabulary{% endblock %}
+
+{% block extra_head %}
+<script src="/static/js/vocabulary_manage.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Add CSRF token for AJAX requests -->
+{% csrf_token %}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="mb-0">My Vocabulary</h1>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h4>Vocabulary Statistics</h4>
+                    <div class="progress mb-2" style="height: 30px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                            style="width: {{ stats.learned_percent }}%;" 
+                            aria-valuenow="{{ stats.learned_percent }}" 
+                            aria-valuemin="0" aria-valuemax="100">
+                            Known: {{ stats.learned_percent }}%
+                        </div>
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                            style="width: {{ stats.learning_percent }}%;" 
+                            aria-valuenow="{{ stats.learning_percent }}" 
+                            aria-valuemin="0" aria-valuemax="100">
+                            Learning: {{ stats.learning_percent }}%
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center mt-3">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body bg-success bg-opacity-10">
+                                    <h5 class="card-title">Known Words</h5>
+                                    <p class="card-text display-4">{{ stats.learned_count }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body bg-warning bg-opacity-10">
+                                    <h5 class="card-title">Learning Words</h5>
+                                    <p class="card-text display-4">{{ stats.learning_count }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <span class="badge bg-success me-2">{{ learning_words|length }}</span>
+                    Learning Words
+                </h3>
+                <button class="btn btn-sm btn-outline-primary toggle-edit-mode" data-target="learning-words">
+                    <i class="bi bi-pencil"></i> Edit
+                </button>
+            </div>
+            <div class="card-body">
+                {% if learning_words %}
+                <div class="list-group" id="learning-words">
+                    {% for word_obj in learning_words %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="word-learning px-2 rounded">{{ word_obj.word }}</span>
+                            {% if word_obj.translation %}
+                                <span class="translation ms-2 text-muted">→ {{ word_obj.translation }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="action-buttons" style="display: none;">
+                            <button class="btn btn-sm btn-outline-success mark-as-learned me-1" data-word="{{ word_obj.word }}">
+                                <i class="bi bi-check-circle"></i> Mark as Known
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger mark-as-unknown" data-word="{{ word_obj.word }}">
+                                <i class="bi bi-x-circle"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted fst-italic">No learning words yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <span class="badge bg-info me-2">{{ learned_words|length }}</span>
+                    Known Words
+                </h3>
+                <button class="btn btn-sm btn-outline-primary toggle-edit-mode" data-target="known-words">
+                    <i class="bi bi-pencil"></i> Edit
+                </button>
+            </div>
+            <div class="card-body">
+                {% if learned_words %}
+                <div class="list-group" id="known-words">
+                    {% for word_obj in learned_words %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-light text-dark p-2 word-display">{{ word_obj.word }}</span>
+                            {% if word_obj.translation %}
+                                <span class="translation ms-2 text-muted">→ {{ word_obj.translation }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="action-buttons" style="display: none;">
+                            <button class="btn btn-sm btn-outline-danger remove-known-word" data-word="{{ word_obj.word }}">
+                                <i class="bi bi-x-circle"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted fst-italic">No known words yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
