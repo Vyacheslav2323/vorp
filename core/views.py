@@ -6,13 +6,17 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import json
 from datetime import date
+from django.views.decorators.http import require_POST
+from django.utils import timezone
 
 from .theme_config import get_theme_context
 from vocabulary.models import UserVocabulary
 from translation.word_processor import word_processor
 from translation.vocabulary_service import vocabulary_service
 from .text_utils import demo_highlight_text, highlight_text_html_with_lemmas
-from .models import WordClassificationHistory, LearningMetrics
+from .models import WordClassificationHistory, LearningMetrics, DailyAnalysisUsage, Subscription, PaymentHistory
+from .paypal_config import configure_paypal, create_subscription_plan
+import paypalrestsdk
 
 import logging
 logger = logging.getLogger(__name__)
@@ -122,14 +126,44 @@ def vocabulary_test(request):
     source_lang = 'ko'
     target_lang = 'en'
 
-    # 1️⃣ Determine which text to analyze:
+    # Check daily limit on POST requests
     if request.method == 'POST':
+        # Check if user has reached their daily limit
+        if not DailyAnalysisUsage.can_analyze(request.user):
+            time_until_reset = DailyAnalysisUsage.get_time_until_reset()
+            hours, remainder = divmod(time_until_reset.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            messages.error(
+                request, 
+                f"You've reached your daily limit of 5 analyses. The limit will reset in {hours:02d}:{minutes:02d}:{seconds:02d}."
+            )
+            return redirect('vocabulary_test')
+        
         user_text = request.POST.get('text', '').strip()
         # Save whatever the user submitted into the session (even if blank string)
         request.session['vocab_last_text'] = user_text
+        
+        # Increment the usage counter
+        usage = DailyAnalysisUsage.get_today_usage(request.user)
+        usage.increment()
     else:
         # On GET, try to reuse the last‐submitted text from session
         user_text = request.session.get('vocab_last_text', '').strip()
+
+    # Get the current usage count for display
+    current_usage = DailyAnalysisUsage.get_today_usage(request.user)
+    context['analyses_remaining'] = max(5 - current_usage.count, 0)
+    context['analyses_used'] = current_usage.count
+
+    # Get time until next reset
+    time_until_reset = DailyAnalysisUsage.get_time_until_reset()
+    hours, remainder = divmod(time_until_reset.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    context['reset_in'] = {
+        'hours': hours,
+        'minutes': minutes,
+        'seconds': seconds
+    }
 
     # 2️⃣ If there's no text in session (or user submitted blank), fall back to sample:
     if not user_text:
@@ -165,5 +199,115 @@ def vocabulary_test(request):
 
     return render(request, 'core/vocabulary_test.html', context)
 
+
+@login_required
+def subscription_page(request):
+    """Display subscription options and current status."""
+    try:
+        subscription = Subscription.objects.get(user=request.user)
+    except Subscription.DoesNotExist:
+        subscription = None
+
+    context = {
+        'subscription': subscription,
+        'is_premium': subscription.is_premium if subscription else False,
+    }
+    return render(request, 'core/subscription.html', context)
+
+@login_required
+def create_subscription(request):
+    """Create a PayPal subscription."""
+    try:
+        configure_paypal()
+        billing_plan = create_subscription_plan()
+        
+        # Activate the plan
+        if billing_plan.state == 'CREATED':
+            billing_plan.activate()
+
+        # Create agreement
+        agreement = paypalrestsdk.BillingAgreement({
+            "name": "Premium Vocabulary Learning Subscription",
+            "description": "Monthly subscription for premium features",
+            "start_date": (timezone.now() + timezone.timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "plan": {
+                "id": billing_plan.id
+            },
+            "payer": {
+                "payment_method": "paypal"
+            }
+        })
+
+        if agreement.create():
+            for link in agreement.links:
+                if link.rel == "approval_url":
+                    return redirect(link.href)
+        else:
+            logger.error(f"Failed to create agreement: {agreement.error}")
+            return JsonResponse({'error': 'Failed to create subscription'}, status=400)
+
+    except Exception as e:
+        logger.error(f"Subscription creation error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def execute_subscription(request):
+    """Execute the PayPal subscription agreement."""
+    token = request.GET.get('token')
+    if not token:
+        return JsonResponse({'error': 'No token provided'}, status=400)
+
+    try:
+        agreement = paypalrestsdk.BillingAgreement.execute(token)
+        
+        # Create or update subscription
+        subscription, created = Subscription.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'subscription_type': 'premium',
+                'is_active': True,
+                'paypal_subscription_id': agreement.id,
+                'end_date': timezone.now() + timezone.timedelta(days=30)
+            }
+        )
+
+        if not created:
+            subscription.subscription_type = 'premium'
+            subscription.is_active = True
+            subscription.paypal_subscription_id = agreement.id
+            subscription.end_date = timezone.now() + timezone.timedelta(days=30)
+            subscription.save()
+
+        # Record payment
+        PaymentHistory.objects.create(
+            user=request.user,
+            subscription=subscription,
+            amount=9.99,
+            currency='USD',
+            paypal_transaction_id=agreement.id
+        )
+
+        return redirect('subscription_success')
+
+    except Exception as e:
+        logger.error(f"Subscription execution error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def cancel_subscription(request):
+    """Cancel the PayPal subscription."""
+    try:
+        subscription = Subscription.objects.get(user=request.user)
+        if subscription.paypal_subscription_id:
+            agreement = paypalrestsdk.BillingAgreement.find(subscription.paypal_subscription_id)
+            if agreement.cancel():
+                subscription.is_active = False
+                subscription.save()
+                return JsonResponse({'status': 'success'})
+            else:
+                return JsonResponse({'error': agreement.error}, status=400)
+    except Exception as e:
+        logger.error(f"Subscription cancellation error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
 
 # (Other views remain unchanged…)

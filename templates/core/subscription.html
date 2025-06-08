@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Subscription Plans - Vorp{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-4 mb-5">Subscription Plans</h1>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Free Plan -->
+        <div class="col-md-6">
+            <div class="card h-100 {% if not subscription or not subscription.is_premium %}border-primary{% endif %}">
+                <div class="card-body">
+                    <h2 class="card-title h3 mb-4">Free Plan</h2>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Basic vocabulary analysis</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> 5 analyses per day</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Basic word tracking</li>
+                    </ul>
+                    <div class="h2 mb-4">$0/month</div>
+                    {% if not subscription or not subscription.is_premium %}
+                    <div class="text-success fw-bold">Current Plan</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Plan -->
+        <div class="col-md-6">
+            <div class="card h-100 {% if subscription and subscription.is_premium %}border-primary{% endif %}">
+                <div class="card-body">
+                    <h2 class="card-title h3 mb-4">Premium Plan</h2>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Unlimited vocabulary analysis</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Advanced word tracking</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Priority support</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Detailed progress analytics</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Custom word lists</li>
+                    </ul>
+                    <div class="h2 mb-4">$9.99/month</div>
+                    
+                    {% if subscription and subscription.is_premium %}
+                        <div class="mb-3">
+                            <div class="text-success fw-bold mb-2">Current Plan</div>
+                            <p class="mb-3">Next payment: {{ subscription.end_date|date:"F j, Y" }}</p>
+                            <button onclick="cancelSubscription()" class="btn btn-danger">
+                                Cancel Subscription
+                            </button>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'create_subscription' %}" class="btn btn-primary">
+                            Subscribe Now
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if subscription and subscription.is_premium %}
+<script>
+function cancelSubscription() {
+    if (confirm('Are you sure you want to cancel your subscription?')) {
+        fetch('{% url "cancel_subscription" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload();
+            } else {
+                alert('Error canceling subscription: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error canceling subscription: ' + error);
+        });
+    }
+}
+</script>
+{% endif %}
+{% endblock %} 

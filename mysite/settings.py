@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-tw6nwts6hnsfz#3f(e_sr17z*l*8kdt+2icwy^6j%*-^fv+opc')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = ['vorp.onrender.com', 'localhost', '127.0.0.1']
 
@@ -35,6 +35,18 @@ LOGIN_REDIRECT_URL = '/'
 
 # OpenAI API Configuration
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')  # Set this in your environment or on Render
+
+# PayPal Configuration
+if DEBUG:
+    # Development PayPal settings (sandbox)
+    PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'your-sandbox-client-id')
+    PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET', 'your-sandbox-client-secret')
+else:
+    # Production PayPal settings
+    PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
+    PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
+    if not (PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET):
+        raise ValueError("PayPal credentials must be set in production mode")
 
 # Application definition
 
