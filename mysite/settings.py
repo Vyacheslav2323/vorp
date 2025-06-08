@@ -37,16 +37,18 @@ LOGIN_REDIRECT_URL = '/'
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')  # Set this in your environment or on Render
 
 # PayPal Configuration
-if DEBUG:
-    # Development PayPal settings (sandbox)
-    PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'your-sandbox-client-id')
-    PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET', 'your-sandbox-client-secret')
-else:
-    # Production PayPal settings
-    PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
-    PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
-    if not (PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET):
-        raise ValueError("PayPal credentials must be set in production mode")
+PAYPAL_MODE = 'sandbox' if DEBUG else 'live'
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
+
+# Validate PayPal settings
+if not DEBUG and (not PAYPAL_CLIENT_ID or not PAYPAL_CLIENT_SECRET):
+    raise ValueError("PayPal credentials must be set in production mode")
+
+# Log warning if using sandbox credentials in production
+if not DEBUG and PAYPAL_CLIENT_ID and 'sandbox' in PAYPAL_CLIENT_ID.lower():
+    import logging
+    logging.warning("WARNING: Using PayPal sandbox credentials in production mode!")
 
 # Application definition
 

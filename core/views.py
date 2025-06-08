@@ -219,7 +219,7 @@ def create_subscription(request):
     """Create a PayPal subscription."""
     try:
         configure_paypal()
-        billing_plan = create_subscription_plan()
+        billing_plan = create_subscription_plan(request)
         
         # Activate the plan
         if billing_plan.state == 'CREATED':
@@ -242,6 +242,8 @@ def create_subscription(request):
             for link in agreement.links:
                 if link.rel == "approval_url":
                     return redirect(link.href)
+            logger.error("No approval URL found in agreement links")
+            return JsonResponse({'error': 'Failed to create subscription - no approval URL'}, status=400)
         else:
             logger.error(f"Failed to create agreement: {agreement.error}")
             return JsonResponse({'error': 'Failed to create subscription'}, status=400)
