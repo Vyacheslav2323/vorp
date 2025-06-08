@@ -58,7 +58,16 @@ def _make_call(
 # ───────────────────────────────────────────────────────────────
 class WordProcessor:
     def __init__(self) -> None:
-        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        api_key = settings.OPENAI_API_KEY
+        if not api_key:
+            raise ValueError("OpenAI API key is not set. Please set OPENAI_API_KEY in your environment.")
+        
+        # Initialize the OpenAI client with proper API key
+        self.client = OpenAI(
+            api_key=api_key,
+            max_retries=3,  # Add some retries for robustness
+            timeout=30.0    # Set a reasonable timeout
+        )
         self._cache: Dict[str, Dict] = {}
 
     # -----------------------------------------------------------

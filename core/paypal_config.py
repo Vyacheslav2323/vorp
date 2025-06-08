@@ -6,6 +6,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class PayPalError(Exception):
+    """Custom exception for PayPal-related errors."""
+    def __init__(self, message, technical_details=None):
+        self.message = message  # User-friendly message
+        self.technical_details = technical_details  # Technical details for logging
+        super().__init__(self.message)
+
 def get_absolute_url(request, view_name):
     """Get absolute URL including domain for PayPal callbacks."""
     relative_url = reverse(view_name)
@@ -29,8 +36,9 @@ def configure_paypal():
         })
         logger.info("PayPal configuration successful")
     except Exception as e:
-        logger.error(f"PayPal configuration error: {str(e)}")
-        raise
+        error_msg = "Failed to configure PayPal integration"
+        logger.error(f"{error_msg}: {str(e)}")
+        raise PayPalError(error_msg, str(e))
 
 def create_subscription_plan(request):
     """Create a PayPal billing plan for premium subscription."""
@@ -45,7 +53,7 @@ def create_subscription_plan(request):
                 "frequency": "MONTH",
                 "frequency_interval": "1",
                 "amount": {
-                    "value": "9.99",  # Monthly subscription price
+                    "value": "19.99",  # Monthly subscription price
                     "currency": "USD"
                 },
                 "cycles": "0"
@@ -68,10 +76,13 @@ def create_subscription_plan(request):
             logger.info(f"Billing plan created successfully with ID: {billing_plan.id}")
             return billing_plan
         else:
-            error_msg = billing_plan.error
-            logger.error(f"Failed to create billing plan: {error_msg}")
-            raise Exception(error_msg)
+            error_msg = "Failed to create subscription plan"
+            logger.error(f"{error_msg}: {billing_plan.error}")
+            raise PayPalError(error_msg, billing_plan.error)
             
+    except PayPalError:
+        raise
     except Exception as e:
-        logger.error(f"Error creating subscription plan: {str(e)}")
-        raise 
+        error_msg = "An error occurred while setting up the subscription"
+        logger.error(f"{error_msg}: {str(e)}")
+        raise PayPalError(error_msg, str(e)) 

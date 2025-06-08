@@ -9,6 +9,7 @@ from .models import WordClassificationHistory, LearningMetrics
 from translation.vocabulary_service import vocabulary_service
 from translation.word_processor import WordProcessor
 import logging
+from core.models import DailyAnalysisUsage
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -421,6 +422,22 @@ def api_vocabulary_analysis(request):
     """
     if request.method == 'POST':
         try:
+            # Check if user has reached their daily limit
+            if not DailyAnalysisUsage.can_analyze(request.user):
+                time_until_reset = DailyAnalysisUsage.get_time_until_reset()
+                hours, remainder = divmod(time_until_reset.seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return JsonResponse({
+                    'success': False,
+                    'error': f"You've reached your daily limit of 5 analyses. The limit will reset in {hours:02d}:{minutes:02d}:{seconds:02d}.",
+                    'limit_reached': True,
+                    'reset_in': {
+                        'hours': hours,
+                        'minutes': minutes,
+                        'seconds': seconds
+                    }
+                }, status=429)  # 429 Too Many Requests
+            
             data = json.loads(request.body)
             text = data.get('text', '')
             language = data.get('language', get_word_language(request))
@@ -434,10 +451,26 @@ def api_vocabulary_analysis(request):
             # Process text using word processor
             result = word_processor.process_text_for_vocabulary_test(text, user_vocabulary)
             
+            # Increment the usage counter
+            usage = DailyAnalysisUsage.get_today_usage(request.user)
+            usage.increment()
+            
+            # Get time until next reset
+            time_until_reset = DailyAnalysisUsage.get_time_until_reset()
+            hours, remainder = divmod(time_until_reset.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            
             return JsonResponse({
                 'success': True,
                 'html': result['html'],
-                'stats': result['stats']
+                'stats': result['stats'],
+                'analyses_remaining': max(5 - usage.count, 0),
+                'analyses_used': usage.count,
+                'reset_in': {
+                    'hours': hours,
+                    'minutes': minutes,
+                    'seconds': seconds
+                }
             })
             
         except json.JSONDecodeError:

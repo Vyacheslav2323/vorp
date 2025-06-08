@@ -15,7 +15,7 @@ from translation.word_processor import word_processor
 from translation.vocabulary_service import vocabulary_service
 from .text_utils import demo_highlight_text, highlight_text_html_with_lemmas
 from .models import WordClassificationHistory, LearningMetrics, DailyAnalysisUsage, Subscription, PaymentHistory
-from .paypal_config import configure_paypal, create_subscription_plan
+from .paypal_config import configure_paypal, create_subscription_plan, PayPalError
 import paypalrestsdk
 
 import logging
@@ -214,6 +214,23 @@ def subscription_page(request):
     }
     return render(request, 'core/subscription.html', context)
 
+def handle_subscription_error(request, error, status=400):
+    """Handle subscription errors consistently."""
+    if isinstance(error, PayPalError):
+        # Log technical details but show user-friendly message
+        logger.error(f"PayPal Error - User message: {error.message}, Technical details: {error.technical_details}")
+        error_message = error.message
+    else:
+        # For unexpected errors, log everything but show generic message
+        logger.error(f"Unexpected error in subscription process: {str(error)}")
+        error_message = "An unexpected error occurred. Please try again later."
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': error_message}, status=status)
+    else:
+        messages.error(request, error_message)
+        return redirect('subscription_page')
+
 @login_required
 def create_subscription(request):
     """Create a PayPal subscription."""
@@ -242,22 +259,19 @@ def create_subscription(request):
             for link in agreement.links:
                 if link.rel == "approval_url":
                     return redirect(link.href)
-            logger.error("No approval URL found in agreement links")
-            return JsonResponse({'error': 'Failed to create subscription - no approval URL'}, status=400)
+            raise PayPalError("Unable to process subscription request")
         else:
-            logger.error(f"Failed to create agreement: {agreement.error}")
-            return JsonResponse({'error': 'Failed to create subscription'}, status=400)
+            raise PayPalError("Failed to create subscription agreement", agreement.error)
 
     except Exception as e:
-        logger.error(f"Subscription creation error: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
+        return handle_subscription_error(request, e)
 
 @login_required
 def execute_subscription(request):
     """Execute the PayPal subscription agreement."""
     token = request.GET.get('token')
     if not token:
-        return JsonResponse({'error': 'No token provided'}, status=400)
+        return handle_subscription_error(request, PayPalError("Invalid subscription request"))
 
     try:
         agreement = paypalrestsdk.BillingAgreement.execute(token)
@@ -289,11 +303,11 @@ def execute_subscription(request):
             paypal_transaction_id=agreement.id
         )
 
-        return redirect('subscription_success')
+        messages.success(request, "Your premium subscription has been activated successfully!")
+        return redirect('subscription_page')
 
     except Exception as e:
-        logger.error(f"Subscription execution error: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
+        return handle_subscription_error(request, e)
 
 @login_required
 def cancel_subscription(request):
@@ -305,11 +319,13 @@ def cancel_subscription(request):
             if agreement.cancel():
                 subscription.is_active = False
                 subscription.save()
+                messages.success(request, "Your subscription has been cancelled successfully.")
                 return JsonResponse({'status': 'success'})
             else:
-                return JsonResponse({'error': agreement.error}, status=400)
+                raise PayPalError("Failed to cancel subscription", agreement.error)
+        else:
+            raise PayPalError("No active subscription found")
     except Exception as e:
-        logger.error(f"Subscription cancellation error: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
+        return handle_subscription_error(request, e)
 
 # (Other views remain unchanged…)

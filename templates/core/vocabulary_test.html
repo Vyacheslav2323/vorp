@@ -20,6 +20,21 @@
                         <li><span class="word-learning">Learning words</span> - Hover to see detailed English meanings</li>
                         <li>Learned words - No highlighting (you already know these)</li>
                     </ul>
+                    <div class="alert {% if analyses_remaining > 0 %}alert-info{% else %}alert-warning{% endif %} mb-3">
+                        <strong>Daily Analysis Usage:</strong> 
+                        {% if analyses_remaining > 0 %}
+                            You have {{ analyses_remaining }} analyses remaining today.
+                        {% else %}
+                            You've reached your daily limit. The limit will reset in {{ reset_in.hours|stringformat:"02d" }}:{{ reset_in.minutes|stringformat:"02d" }}:{{ reset_in.seconds|stringformat:"02d" }}.
+                        {% endif %}
+                        <br>
+                        <small class="text-muted">
+                            Used {{ analyses_used }} out of 5 daily analyses
+                            {% if analyses_remaining > 0 %}
+                            • Resets in {{ reset_in.hours|stringformat:"02d" }}:{{ reset_in.minutes|stringformat:"02d" }}:{{ reset_in.seconds|stringformat:"02d" }}
+                            {% endif %}
+                        </small>
+                    </div>
                 </div>
             </div>
             
@@ -29,7 +44,9 @@
                     <label for="text-input">Enter text:</label>
                     <textarea id="text-input" name="text" class="form-control" rows="8">{{ original_text }}</textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" id="analyze-btn">Analyze</button>
+                <button type="submit" class="btn btn-primary" id="analyze-btn" {% if analyses_remaining == 0 %}disabled{% endif %}>
+                    Analyze
+                </button>
             </form>
             
             {% if highlighted_html %}

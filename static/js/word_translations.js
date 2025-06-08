@@ -234,4 +234,129 @@ function updateTranslation(wordId, translation) {
         element.dataset.translation = translation;
         initializeElementTooltips(element);
     }
-} 
+}
+
+function handleAnalyzeResponse(response) {
+    if (response.success) {
+        // Update the output container with the new HTML
+        const outputContainer = document.querySelector('.text-output');
+        if (outputContainer) {
+            outputContainer.innerHTML = response.html;
+        }
+        
+        // Update stats if they exist
+        if (response.stats) {
+            updateStats(response.stats);
+        }
+        
+        // Update the analyses counter if provided
+        if (response.analyses_remaining !== undefined) {
+            updateAnalysisCounter(
+                response.analyses_remaining,
+                response.analyses_used,
+                response.reset_in
+            );
+        }
+    } else {
+        // Handle error
+        if (response.limit_reached) {
+            // Show limit reached message with countdown
+            updateAnalysisCounter(0, 5, response.reset_in);
+        }
+        if (response.error) {
+            alert(response.error);
+        }
+    }
+}
+
+function updateAnalysisCounter(remaining, used, resetIn) {
+    const alertDiv = document.querySelector('.alert');
+    if (!alertDiv) return;
+
+    // Update alert class
+    alertDiv.className = `alert ${remaining > 0 ? 'alert-info' : 'alert-warning'} mb-3`;
+
+    // Format the time string
+    const timeStr = formatTimeRemaining(resetIn);
+
+    // Update alert content
+    if (remaining > 0) {
+        alertDiv.innerHTML = `
+            <strong>Daily Analysis Usage:</strong> 
+            You have ${remaining} analyses remaining today.
+            <br>
+            <small class="text-muted">
+                Used ${used} out of 5 daily analyses
+                • Resets in <span class="reset-countdown">${timeStr}</span>
+            </small>
+        `;
+    } else {
+        alertDiv.innerHTML = `
+            <strong>Daily Analysis Usage:</strong> 
+            You've reached your daily limit. The limit will reset in <span class="reset-countdown">${timeStr}</span>.
+            <br>
+            <small class="text-muted">Used ${used} out of 5 daily analyses</small>
+        `;
+    }
+
+    // Disable/enable the analyze button
+    const analyzeBtn = document.getElementById('analyze-btn');
+    if (analyzeBtn) {
+        analyzeBtn.disabled = remaining === 0;
+    }
+
+    // Start countdown timer
+    startCountdown(resetIn);
+}
+
+function formatTimeRemaining(resetIn) {
+    if (!resetIn) return '00:00:00';
+    const { hours, minutes, seconds } = resetIn;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+let countdownInterval;
+function startCountdown(resetIn) {
+    // Clear any existing countdown
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+    }
+
+    if (!resetIn) return;
+
+    let totalSeconds = resetIn.hours * 3600 + resetIn.minutes * 60 + resetIn.seconds;
+
+    countdownInterval = setInterval(() => {
+        totalSeconds--;
+        if (totalSeconds <= 0) {
+            clearInterval(countdownInterval);
+            // Reload the page when the countdown reaches zero
+            window.location.reload();
+            return;
+        }
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        
+        // Update all countdown spans
+        document.querySelectorAll('.reset-countdown').forEach(span => {
+            span.textContent = timeStr;
+        });
+    }, 1000);
+}
+
+// Initialize countdown on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const alertDiv = document.querySelector('.alert');
+    if (alertDiv) {
+        const countdownSpan = alertDiv.querySelector('.reset-countdown');
+        if (countdownSpan) {
+            const timeStr = countdownSpan.textContent;
+            const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+            startCountdown({ hours, minutes, seconds });
+        }
+    }
+}); 
