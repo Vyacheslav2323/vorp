@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Vorp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 text-center">
+        <h1 class="mt-5 glow-text">Welcome to Vorp</h1>
+        {% if user.is_authenticated %}
+        <p class="lead">Hello, {{ user.username }}! You are now logged in.</p>
+        {% else %}
+        <p class="lead">Experience the next generation of language learning.</p>
+        {% endif %}
+        <div class="mt-4">
+            <a href="{% url 'vocabulary_test' %}" class="btn btn-primary btn-lg">Try Vocabulary Test</a>
+        </div>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+<div class="row mt-5">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Your Dashboard</h4>
+            </div>
+            <div class="card-body">
+                <h5>Account Information</h5>
+                <ul>
+                    <li><strong>Username:</strong> {{ user.username }}</li>
+                    <li><strong>Last Login:</strong> {{ user.last_login }}</li>
+                </ul>
+                
+                <h5 class="mt-4">What's Next?</h5>
+                <p>You're now logged in and can access all the features of our application.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="#" class="btn btn-primary me-md-2">Start Learning</a>
+                    <a href="#" class="btn btn-secondary">Update Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Feature One</h5>
+            </div>
+            <div class="card-body">
+                <p>Vocabulary tracking and progress.</p>
+                <a href="{% url 'login' %}" class="btn btn-primary">Login to Explore</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Feature Two</h5>
+            </div>
+            <div class="card-body">
+                <p>Level Matching.</p>
+                <a href="{% url 'login' %}" class="btn btn-primary">Login to Learn More</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

@@ -1,0 +1,551 @@
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --toxic-green: #90EE90;
+    --toxic-green-dark: #32CD32;
+    --toxic-green-light: #7FFF00;
+    --toxic-green-accent: #00FF00;
+    --light-bg: #FFFFFF;
+    --light-card-bg: #F8F8F8;
+    --text-color: #333333;
+}
+
+body {
+    background-color: var(--light-bg);
+    color: var(--text-color) !important;
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(57, 255, 20, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 15% 85%, rgba(57, 255, 20, 0.03) 0%, transparent 25%),
+        radial-gradient(circle at 85% 15%, rgba(57, 255, 20, 0.03) 0%, transparent 25%);
+}
+
+/* Override Bootstrap defaults */
+*, p, div, span, li, td, th, small {
+    color: var(--text-color);
+}
+
+/* Set specific colors for headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--toxic-green-dark) !important;
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+}
+
+/* Card body text */
+.card-body p, .card-body li, .card-body span {
+    color: var(--text-color) !important;
+}
+
+/* Card header text */
+.card-header h1, .card-header h2, .card-header h3, 
+.card-header h4, .card-header h5, .card-header h6 {
+    color: var(--light-bg) !important;
+}
+
+.navbar {
+    background-color: var(--toxic-green-dark) !important;
+    box-shadow: 0 2px 10px rgba(57, 255, 20, 0.5);
+}
+
+.navbar-brand, .nav-link {
+    color: var(--light-bg) !important;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-toggler {
+    border-color: var(--light-bg);
+}
+
+.btn-primary {
+    background-color: var(--toxic-green);
+    border-color: var(--toxic-green-dark);
+    color: var(--text-color) !important;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--toxic-green-dark);
+    border-color: var(--toxic-green-dark);
+    color: var(--light-bg) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.7);
+}
+
+.btn-secondary {
+    background-color: var(--light-bg);
+    border-color: var(--toxic-green);
+    color: var(--toxic-green-dark) !important;
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--toxic-green);
+    color: var(--light-bg) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
+}
+
+.card {
+    background-color: var(--light-card-bg);
+    border-color: var(--toxic-green);
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background-color: var(--toxic-green-dark);
+    color: var(--light-bg) !important;
+    font-weight: bold;
+    border-bottom: 2px solid var(--toxic-green);
+}
+
+.card-title, .card-subtitle {
+    color: var(--toxic-green-dark) !important;
+}
+
+footer {
+    background-color: var(--light-card-bg) !important;
+    color: var(--toxic-green-dark) !important;
+    border-top: 1px solid var(--toxic-green);
+    box-shadow: 0 -2px 10px rgba(57, 255, 20, 0.3);
+}
+
+footer p {
+    color: var(--toxic-green-dark) !important;
+}
+
+.form-control {
+    background-color: var(--light-bg);
+    border-color: #ccc;
+    color: var(--text-color);
+}
+
+.form-control:focus {
+    background-color: var(--light-bg);
+    border-color: var(--toxic-green);
+    box-shadow: 0 0 0 0.25rem rgba(57, 255, 20, 0.25);
+    color: var(--text-color);
+}
+
+/* Select dropdown styling */
+.form-select {
+    background-color: var(--light-bg);
+    border-color: #ccc;
+    color: var(--text-color);
+}
+
+.form-select:focus {
+    background-color: var(--light-bg);
+    border-color: var(--toxic-green);
+    box-shadow: 0 0 0 0.25rem rgba(57, 255, 20, 0.25);
+    color: var(--text-color);
+}
+
+.form-select option {
+    background-color: var(--light-bg);
+    color: var(--text-color);
+}
+
+.form-select option:checked {
+    background-color: var(--toxic-green-dark);
+    color: var(--light-bg);
+}
+
+/* Glowing text effect for certain elements */
+.glow-text {
+    animation: glow 2s ease-in-out infinite alternate;
+    color: var(--toxic-green-dark) !important;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+    }
+    to {
+        text-shadow: 0 0 15px rgba(57, 255, 20, 0.8),
+                     0 0 20px rgba(57, 255, 20, 0.5);
+    }
+}
+
+/* Add a subtle toxic pulse to the page */
+.toxic-pulse {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: radial-gradient(circle at center, rgba(57, 255, 20, 0.05) 0%, transparent 70%);
+    z-index: -1;
+    opacity: 0.5;
+    animation: pulse 6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.2; }
+    50% { opacity: 0.4; }
+    100% { opacity: 0.2; }
+}
+
+/* Login page styles */
+.form-check-input:checked {
+    background-color: var(--toxic-green);
+    border-color: var(--toxic-green-dark);
+}
+
+.form-check-input:focus {
+    border-color: var(--toxic-green);
+    box-shadow: 0 0 0 0.25rem rgba(57, 255, 20, 0.25);
+}
+
+/* Links styling */
+a {
+    color: var(--toxic-green-dark);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: var(--toxic-green);
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
+}
+
+/* Registration specific styles */
+.card.register {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
+}
+
+.form-control.password-field:focus {
+    background-color: var(--light-bg);
+    border-color: var(--toxic-green);
+    box-shadow: 0 0 0 0.25rem rgba(57, 255, 20, 0.25);
+}
+
+/* Input validation styling */
+.form-control:valid {
+    border-color: var(--toxic-green-dark);
+}
+
+.form-control:invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+/* Alert styling */
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border-color: rgba(220, 53, 69, 0.2);
+}
+
+/* Disabled option styling */
+.form-select option:disabled {
+    color: #888;
+    background-color: #f0f0f0;
+    font-style: italic;
+}
+
+/* Dropdown styling */
+.dropdown-menu {
+    background-color: var(--light-card-bg);
+    border-color: var(--toxic-green);
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+}
+
+.dropdown-item {
+    color: var(--text-color);
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: rgba(57, 255, 20, 0.1);
+    color: var(--toxic-green-dark);
+}
+
+.dropdown-divider {
+    border-top-color: var(--toxic-green);
+    opacity: 0.2;
+}
+
+/* Word highlighting styles */
+.word-unknown {
+    background-color: rgba(57, 255, 20, 0.3);
+    cursor: pointer;
+}
+
+.word-unknown:hover {
+    background-color: rgba(57, 255, 20, 0.5);
+    box-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+}
+
+/* Word styling consistency */
+.word-learning, .word-display, .word-unknown {
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: normal;
+    line-height: 1.5;
+    display: inline-block;
+    padding: 0 2px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.word-learning {
+    background-color: rgba(255, 193, 7, 0.3);
+    cursor: pointer;
+}
+
+.word-learning:hover {
+    background-color: rgba(255, 193, 7, 0.5);
+    box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+}
+
+.word-display {
+    text-align: left;
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Text input styling */
+.text-input-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.text-input {
+    width: 100%;
+    min-height: 150px;
+    padding: 15px;
+    border: 1px solid var(--toxic-green);
+    border-radius: 5px;
+    resize: vertical;
+    font-size: 16px;
+}
+
+.text-output {
+    width: 100%;
+    min-height: 150px;
+    padding: 15px;
+    border: 1px solid var(--toxic-green);
+    border-radius: 5px;
+    background-color: var(--light-card-bg);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-y: auto;
+}
+
+/* Edit mode styling */
+.toggle-edit-mode {
+    transition: all 0.3s ease;
+}
+
+.toggle-edit-mode.active {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+    color: white;
+}
+
+.action-buttons {
+    transition: opacity 0.3s ease;
+}
+
+/* Improve layout during edit mode */
+.list-group-item {
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Translation tooltip styles */
+#translation-tooltip {
+    position: absolute;
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    max-width: 200px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#translation-tooltip.visible {
+    opacity: 1;
+}
+
+#translation-tooltip.loading {
+    background-color: #007bff;
+    color: white;
+}
+
+#translation-tooltip.loading::after {
+    content: '...';
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% {
+        content: '...';
+    }
+    40% {
+        content: '.';
+    }
+    60% {
+        content: '..';
+    }
+    80%, 100% {
+        content: '...';
+    }
+}
+
+/* Add a small arrow to the tooltip */
+#translation-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 10px;
+    border-width: 0 5px 5px;
+    border-style: solid;
+    border-color: transparent transparent #333;
+}
+
+/* Ensure word elements are interactive */
+.word-unknown, .word-learning {
+    cursor: help;
+    transition: background-color 0.2s ease;
+}
+
+.word-unknown:hover, .word-learning:hover {
+    background-color: rgba(255, 193, 7, 0.3);
+    border-radius: 3px;
+}
+
+/* Sentence Translation Section Styles */
+.sentence-translation {
+    background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+    border: 2px solid var(--toxic-green);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sentence-translation .card-body {
+    padding: 15px 20px;
+}
+
+.sentence-translation h5 {
+    font-size: 1.4rem;
+    line-height: 1.5;
+    color: #2d5f3f;
+    font-weight: 600;
+    margin: 0;
+}
+
+.translation-header {
+    color: var(--toxic-green) !important;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.translation-header i {
+    margin-right: 8px;
+}
+
+/* Word Analysis Section */
+.word-analysis-section {
+    margin-top: 30px;
+}
+
+.word-analysis-header {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.word-analysis-instruction {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+/* Enhanced text output styling */
+.text-output {
+    background-color: #fafafa;
+    border: 1px solid #e9ecef;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    padding: 20px;
+}
+
+/* Statistics cards enhancement */
+.stats-section {
+    margin-top: 25px;
+}
+
+.stats-section h5 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* Button styling improvements */
+.translate-remaining-btn {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+.translate-remaining-btn:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+.translate-remaining-note {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-left: 10px;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .sentence-translation {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .sentence-translation h5 {
+        font-size: 1.2rem;
+    }
+    
+    .text-output {
+        font-size: 1rem;
+        padding: 15px;
+    }
+}
+
+/* Translation styles */
+.translation {
+    font-size: 0.9em;
+    color: #6c757d;
+    font-style: italic;
+} 
