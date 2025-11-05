@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.parquet
+*.csv
+*.txt
+*.log
+*.sqlite3
+node_modules/
+dist/
+build/
+.DS_Store
+*.pyc
+__pycache__/
+.env
+.venv
+node_modules/
+.DS_Store

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary - Korean Live Transcription</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="base.html" class="navbar-brand" data-i18n="app.title">LexiPark</a>
+        <div class="navbar-auth" id="navbarAuth">
+            <button class="auth-btn-nav login" id="navLoginBtn">Login</button>
+            <button class="auth-btn-nav register" id="navRegisterBtn">Register</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="vocab-page">
+            <h2 data-i18n="vocab.title">Your Vocabulary</h2>
+            <div class="vocab-header">
+                <button class="v-sort" data-key="base" data-i18n="vocab.word">Word</button>
+                <span data-i18n="vocab.translation">Translation</span>
+            </div>
+            <div id="vocabList" class="vocab-list"></div>
+        </div>
+    </div>
+    <script type="module" src="vocab-page-init.js"></script>
+</body>
+</html>
+

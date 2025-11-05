@@ -1,0 +1,427 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		007D1F05781D496BF842BA48 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C5D49F46866EC141A6B29AB /* Files.swift */; };
+		063ABCAD27BC023ABB04702D /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F2398930EDBB0785E09396 /* Constants.swift */; };
+		10C934011CA03638BC7EAA10 /* RecordingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D84D0EBFD0EF3DDA69B556 /* RecordingManager.swift */; };
+		23B56724DDC261602ABBF92A /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F2398930EDBB0785E09396 /* Constants.swift */; };
+		3645D541D691839CAE72D0CB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95562DB931C7B46E8C97DF0 /* Logger.swift */; };
+		83F9C0B12E9790D60013F7B2 /* RecorderExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 27DE3443C5532F4664775644 /* RecorderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8A139A1650F5AE0B8F58AD50 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95562DB931C7B46E8C97DF0 /* Logger.swift */; };
+		94D65BA2CA59C95C719CF3B0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CC5DB854D91B87391C9496B /* ContentView.swift */; };
+		989FED3E9B9266DBF73F0B65 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DE9C04E37DC10DCB43159A /* App.swift */; };
+		9E457E7B574AED5EF1FB2931 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C5D49F46866EC141A6B29AB /* Files.swift */; };
+		A0E806CCF96404D5E0F77E05 /* RecordingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D84D0EBFD0EF3DDA69B556 /* RecordingManager.swift */; };
+		E98A69697385A122E3489B0B /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAD6A85BC418AB40DAA49D8 /* SampleHandler.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		83F9C0B02E97909A0013F7B2 /* Copy Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				83F9C0B12E9790D60013F7B2 /* RecorderExtension.appex in Copy Files */,
+			);
+			name = "Copy Files";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		02D84D0EBFD0EF3DDA69B556 /* RecordingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingManager.swift; sourceTree = "<group>"; };
+		12F2398930EDBB0785E09396 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		27DE3443C5532F4664775644 /* RecorderExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RecorderExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C5D49F46866EC141A6B29AB /* Files.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
+		49C5CF321A93633115A74151 /* LexiParkRecorderApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LexiParkRecorderApp.entitlements; sourceTree = "<group>"; };
+		8CC5DB854D91B87391C9496B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		9BAD6A85BC418AB40DAA49D8 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		B0F51CE55DFA1EB120D2981D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C9969B30F5FD1A5F54FD46E0 /* LexiParkRecorderApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LexiParkRecorderApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E567101EC96FE8A9D1C146BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F0DE9C04E37DC10DCB43159A /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		F7C51861C96CAA809345636E /* RecorderExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RecorderExtension.entitlements; sourceTree = "<group>"; };
+		F95562DB931C7B46E8C97DF0 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0A62D5B94C5F74E1E65819CE /* LexiParkRecorderApp */ = {
+			isa = PBXGroup;
+			children = (
+				F0DE9C04E37DC10DCB43159A /* App.swift */,
+				8CC5DB854D91B87391C9496B /* ContentView.swift */,
+				E567101EC96FE8A9D1C146BF /* Info.plist */,
+				49C5CF321A93633115A74151 /* LexiParkRecorderApp.entitlements */,
+			);
+			path = LexiParkRecorderApp;
+			sourceTree = "<group>";
+		};
+		193FED6043733256FDD91D5A /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				12F2398930EDBB0785E09396 /* Constants.swift */,
+				2C5D49F46866EC141A6B29AB /* Files.swift */,
+				F95562DB931C7B46E8C97DF0 /* Logger.swift */,
+				02D84D0EBFD0EF3DDA69B556 /* RecordingManager.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		6932391ED915DCB754F01D22 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C9969B30F5FD1A5F54FD46E0 /* LexiParkRecorderApp.app */,
+				27DE3443C5532F4664775644 /* RecorderExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9442BA69E19279612D1DDF67 = {
+			isa = PBXGroup;
+			children = (
+				0A62D5B94C5F74E1E65819CE /* LexiParkRecorderApp */,
+				B485BE300A02D6745312B191 /* RecorderExtension */,
+				193FED6043733256FDD91D5A /* Shared */,
+				6932391ED915DCB754F01D22 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B485BE300A02D6745312B191 /* RecorderExtension */ = {
+			isa = PBXGroup;
+			children = (
+				B0F51CE55DFA1EB120D2981D /* Info.plist */,
+				F7C51861C96CAA809345636E /* RecorderExtension.entitlements */,
+				9BAD6A85BC418AB40DAA49D8 /* SampleHandler.swift */,
+			);
+			path = RecorderExtension;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C662CBA368BA92CFE1A16781 /* LexiParkRecorderApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FACC7C19B7D7627C1B4661FA /* Build configuration list for PBXNativeTarget "LexiParkRecorderApp" */;
+			buildPhases = (
+				D73F5492D26B604EC161B11E /* Sources */,
+				83F9C0B02E97909A0013F7B2 /* Copy Files */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LexiParkRecorderApp;
+			packageProductDependencies = (
+			);
+			productName = LexiParkRecorderApp;
+			productReference = C9969B30F5FD1A5F54FD46E0 /* LexiParkRecorderApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D24BA8BC244F80769448DCD6 /* RecorderExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A375B1F030BCE85CBDA5E63 /* Build configuration list for PBXNativeTarget "RecorderExtension" */;
+			buildPhases = (
+				D468E3381CD209E4D1F1B9FE /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RecorderExtension;
+			packageProductDependencies = (
+			);
+			productName = RecorderExtension;
+			productReference = 27DE3443C5532F4664775644 /* RecorderExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		019F9947DAA4C878287D5BD5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+			};
+			buildConfigurationList = EAF91595941779A74DD2606E /* Build configuration list for PBXProject "LexiParkRecorder" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 9442BA69E19279612D1DDF67;
+			minimizedProjectReferenceProxies = 1;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C662CBA368BA92CFE1A16781 /* LexiParkRecorderApp */,
+				D24BA8BC244F80769448DCD6 /* RecorderExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D468E3381CD209E4D1F1B9FE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23B56724DDC261602ABBF92A /* Constants.swift in Sources */,
+				9E457E7B574AED5EF1FB2931 /* Files.swift in Sources */,
+				8A139A1650F5AE0B8F58AD50 /* Logger.swift in Sources */,
+				A0E806CCF96404D5E0F77E05 /* RecordingManager.swift in Sources */,
+				E98A69697385A122E3489B0B /* SampleHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D73F5492D26B604EC161B11E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				989FED3E9B9266DBF73F0B65 /* App.swift in Sources */,
+				063ABCAD27BC023ABB04702D /* Constants.swift in Sources */,
+				94D65BA2CA59C95C719CF3B0 /* ContentView.swift in Sources */,
+				007D1F05781D496BF842BA48 /* Files.swift in Sources */,
+				3645D541D691839CAE72D0CB /* Logger.swift in Sources */,
+				10C934011CA03638BC7EAA10 /* RecordingManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		70631C8C05DCBF517A285919 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexipark.recorder;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		7B7029D74D55FEEC61C039C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LexiParkRecorderApp/LexiParkRecorderApp.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 8MQV6MU23W;
+				INFOPLIST_FILE = LexiParkRecorderApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexipark.recorder;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B7A1C9C56D14030064ABC214 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = RecorderExtension/RecorderExtension.entitlements;
+				DEVELOPMENT_TEAM = 8MQV6MU23W;
+				INFOPLIST_FILE = RecorderExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexipark.recorder.RecorderExtension;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C6346998C1C134983E94330A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = RecorderExtension/RecorderExtension.entitlements;
+				DEVELOPMENT_TEAM = 8MQV6MU23W;
+				INFOPLIST_FILE = RecorderExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexipark.recorder.RecorderExtension;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CB816016633B584CA32371E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LexiParkRecorderApp/LexiParkRecorderApp.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 8MQV6MU23W;
+				INFOPLIST_FILE = LexiParkRecorderApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexipark.recorder;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D1418400A552E2A640F432AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexipark.recorder;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A375B1F030BCE85CBDA5E63 /* Build configuration list for PBXNativeTarget "RecorderExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C6346998C1C134983E94330A /* Debug */,
+				B7A1C9C56D14030064ABC214 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EAF91595941779A74DD2606E /* Build configuration list for PBXProject "LexiParkRecorder" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				70631C8C05DCBF517A285919 /* Debug */,
+				D1418400A552E2A640F432AA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FACC7C19B7D7627C1B4661FA /* Build configuration list for PBXNativeTarget "LexiParkRecorderApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B7029D74D55FEEC61C039C7 /* Debug */,
+				CB816016633B584CA32371E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 019F9947DAA4C878287D5BD5 /* Project object */;
+}

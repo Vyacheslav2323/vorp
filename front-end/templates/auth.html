@@ -1,0 +1,44 @@
+<h1 data-i18n="auth.title">🎤 Korean Live Transcription</h1>
+<div class="auth-container">
+    <div class="auth-tabs">
+        <button id="loginTab" class="auth-tab active" data-i18n="auth.login">Login</button>
+        <button id="registerTab" class="auth-tab" data-i18n="auth.register">Register</button>
+    </div>
+    
+    <form id="loginForm" class="auth-form" onsubmit="return false;">
+        <div class="form-group">
+            <input type="text" id="loginUsername" data-i18n-placeholder="auth.username" placeholder="Username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+            <input type="password" id="loginPassword" data-i18n-placeholder="auth.password" placeholder="Password" required autocomplete="current-password">
+        </div>
+        <button type="button" id="loginBtn" class="auth-btn" data-i18n="auth.login">Login</button>
+        <div id="loginAuthStatus" class="auth-status"></div>
+    </form>
+    
+    <div id="registerForm" class="auth-form hidden">
+        <div class="form-group">
+            <input type="text" id="registerUsername" data-i18n-placeholder="auth.username" placeholder="Username" required>
+        </div>
+        <div class="form-group">
+            <input type="email" id="registerEmail" data-i18n-placeholder="auth.email" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+            <input type="password" id="registerPassword" data-i18n-placeholder="auth.password" placeholder="Password" required>
+        </div>
+        <div class="form-group">
+            <label for="registerNativeLang" data-i18n="auth.native_language">Native Language</label>
+            <select id="registerNativeLang" required>
+                <option value="">Select...</option>
+                <option value="en">🇺🇸</option>
+                <option value="ru">🇷🇺</option>
+                <option value="zh">🇨🇳</option>
+                <option value="vi">🇻🇳</option>
+            </select>
+        </div>
+        <button id="registerBtn" class="auth-btn" data-i18n="auth.register">Register</button>
+        <div id="registerAuthStatus" class="auth-status" style="display: block; visibility: visible;"></div>
+    </div>
+</div>
+
+

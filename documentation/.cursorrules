@@ -1,0 +1,40 @@
+# Core Project Directory Rules
+
+## Project Structure Schema
+```
+core/
+├── back-end/           # Python backend services
+│   ├── api/           # API endpoints and handlers
+│   ├── database/      # Data storage and management
+│   │   └── data/      # CSV files, images, text data
+│   ├── logic/         # Business logic modules
+│   │   ├── embedings/ # ML embeddings (parquet files)
+│   │   ├── image/     # Image processing (OCR, scraping)
+│   │   └── text/      # Text analysis (MeCab, NLP)
+│   └── server/        # Server configuration and deployment
+├── front-end/         # JavaScript frontend (ES6 modules)
+│   ├── index.html     # Main HTML entry point
+│   ├── main.js        # Application entry point
+│   ├── recognition.js # Speech recognition logic
+│   ├── translation.js # Translation API calls
+│   ├── ui.js          # DOM manipulation and UI updates
+│   ├── utils.js       # Utility functions
+│   └── vocabulary.js  # Vocabulary management and coverage
+└── mobile/           # iOS Swift application
+    └── ios/          # Xcode project and Swift code
+```
+
+## Coding Standards
+- Functions must be under 20 lines
+- Functions must have at most 1 input and 1 output
+- No comments in code
+- Use ES6 modules for frontend
+- Use Python type hints for backend
+- Follow single responsibility principle
+
+## Technology Stack
+- Frontend: Vanilla JavaScript (ES6 modules)
+- Backend: Python HTTP server + WebSocket
+- Mobile: Swift/iOS
+- Data: CSV files, Parquet embeddings
+- Hosting: Cloudflare Tunnel
