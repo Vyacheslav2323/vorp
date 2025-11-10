@@ -60,6 +60,20 @@ def init_database():
 
         CREATE INDEX IF NOT EXISTS idx_vocab_user_id ON vocab(user_id);
         CREATE INDEX IF NOT EXISTS idx_vocab_base ON vocab(base);
+
+        CREATE TABLE IF NOT EXISTS recordings (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            role VARCHAR(10) NOT NULL,
+            audio_path VARCHAR(500) NOT NULL,
+            transcript TEXT,
+            language VARCHAR(10),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_recordings_user_id ON recordings(user_id);
+        CREATE INDEX IF NOT EXISTS idx_recordings_created_at ON recordings(created_at);
         """
         cursor.execute("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='vocab')")
         vocab_exists = cursor.fetchone()[0]
@@ -95,6 +109,20 @@ def init_database():
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_global_vocab_base ON global_vocab(base);
+
+                CREATE TABLE IF NOT EXISTS recordings (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    role VARCHAR(10) NOT NULL,
+                    audio_path VARCHAR(500) NOT NULL,
+                    transcript TEXT,
+                    language VARCHAR(10),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_recordings_user_id ON recordings(user_id);
+                CREATE INDEX IF NOT EXISTS idx_recordings_created_at ON recordings(created_at);
             """)
         
         alter_sql = """
@@ -104,6 +132,30 @@ def init_database():
         ALTER TABLE vocab ADD COLUMN IF NOT EXISTS dont_remember_count INTEGER DEFAULT 0;
         """
         cursor.execute(alter_sql)
+        
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_name='recordings'
+            )
+        """)
+        recordings_exists = cursor.fetchone()[0]
+        if not recordings_exists:
+            cursor.execute("""
+                CREATE TABLE recordings (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    role VARCHAR(10) NOT NULL,
+                    audio_path VARCHAR(500) NOT NULL,
+                    transcript TEXT,
+                    language VARCHAR(10),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_recordings_user_id ON recordings(user_id);
+                CREATE INDEX IF NOT EXISTS idx_recordings_created_at ON recordings(created_at);
+            """)
         
         cursor.execute("""
             SELECT EXISTS (

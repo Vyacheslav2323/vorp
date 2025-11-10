@@ -14,6 +14,9 @@ let interimText = '';
 let currentRole = null;
 let translateTimer = null;
 let nativeLang = null;
+let mediaRecorder = null;
+let mediaStream = null;
+let recordedChunks = [];
 
 function mapLangToLocale(lang) {
   const mapping = {
@@ -65,9 +68,28 @@ export function initRecognition(elements, onResultCallback, onStatusUpdate) {
   return { supported: true };
 }
 
-function handleStart() {
+async function handleStart() {
   recording = true;
   currentRole = deriveRole({ lang: currentLang });
+  finalTranscript = '';
+  recordedChunks = [];
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(mediaStream);
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        recordedChunks.push(e.data);
+      }
+    };
+    mediaRecorder.onstop = () => {
+      if (recordedChunks.length > 0) {
+        saveRecording();
+      }
+    };
+    mediaRecorder.start();
+  } catch (e) {
+    console.error('Error starting MediaRecorder:', e);
+  }
   if (statusUpdateCallback) {
     statusUpdateCallback();
   }
@@ -100,6 +122,13 @@ function handleResult(event) {
 
 function handleError(event) {
   recording = false;
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
   
   if (currentElements.statusEl) {
     if (event.error === 'no-speech') {
@@ -114,6 +143,13 @@ function handleError(event) {
 
 function handleEnd() {
   recording = false;
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
   currentLang = null;
   if (statusUpdateCallback) {
     statusUpdateCallback();
@@ -303,5 +339,34 @@ async function playTranslationAudio(text, lang) {
   }
 }
 
-
-
+async function saveRecording() {
+  if (recordedChunks.length === 0) return;
+  const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64 = reader.result.split(',')[1];
+    const token = getAuthToken();
+    const base = getBase();
+    const transcript = getFinalTranscript();
+    const lang = currentLang ? currentLang.split('-')[0] : null;
+    try {
+      await fetch(base + '/recording/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? ('Bearer ' + token) : ''
+        },
+        body: JSON.stringify({
+          audio: base64,
+          role: currentRole || 'speak',
+          transcript: transcript || null,
+          language: lang || null
+        })
+      });
+    } catch (e) {
+      console.error('Error saving recording:', e);
+    }
+  };
+  reader.readAsDataURL(blob);
+  recordedChunks = [];
+}

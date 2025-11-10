@@ -1,77 +1,65 @@
-from deep_translator import GoogleTranslator
+from openai import OpenAI
+import json
+import os
 
-def translate_text(text, from_code, to_code):
-    translator = GoogleTranslator(source=from_code, target=to_code)
-    return translator.translate(text)
+def get_openai_client():
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
+    return OpenAI(api_key=api_key)
 
-def translate_en_to_ko(text):
-    return translate_text(text, "en", "ko")
+def translation_api_call(text, speaker_lang, listener_lang):
+    client = get_openai_client()
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": f"Translate the following text from {speaker_lang} to {listener_lang}. Return only the translation, no explanations:\n\n{text}"}],
+        temperature=0.1
+    )
+    return response.choices[0].message.content.strip()
 
-def translate_en_to_ru(text):
-    return translate_text(text, "en", "ru")
-
-def translate_en_to_zh(text):
-    return translate_text(text, "en", "zh-CN")
-
-def translate_en_to_vi(text):
-    return translate_text(text, "en", "vi")
-
-def translate_ko_to_en(text):
-    return translate_text(text, "ko", "en")
-
-def translate_ko_to_ru(text):
-    return translate_text(text, "ko", "ru")
-
-def translate_ko_to_zh(text):
-    return translate_text(text, "ko", "zh-CN")
-
-def translate_ko_to_vi(text):
-    return translate_text(text, "ko", "vi")
-
-def test_english_translations():
-    test_sentence = "How have you been?"
-    results = []
+def translate_vocab_batch(sentence, base_pos_pairs, target_languages):
+    client = get_openai_client()
+    words_list = [f"{base} ({pos})" for base, pos in base_pos_pairs]
+    words_str = "\n".join(words_list)
+    langs_str = ", ".join(target_languages)
     
-    ko_result = translate_en_to_ko(test_sentence)
-    ru_result = translate_en_to_ru(test_sentence)
-    zh_result = translate_en_to_zh(test_sentence)
-    vi_result = translate_en_to_vi(test_sentence)
-    
-    results.append(f"English → KO: {ko_result}")
-    results.append(f"English → RU: {ru_result}")
-    results.append(f"English → ZH: {zh_result}")
-    results.append(f"English → VI: {vi_result}")
-    
-    return results
+    prompt = f"""Given this Korean sentence: "{sentence}"
 
-def test_korean_translations():
-    korean_sentence = '''합성 데이터에 시간(time) 과 위치(location) 변수를 추가하겠습니다.
+Translate each of the following Korean words (with their part-of-speech tags) into all target languages ({langs_str}).
 
-Exploitation(활용) 은 동일하게 유지하되, Exploration(탐색) 은 ① 유사도(similarity), ② 위치(location), ③ 시간(time)을 함께 고려하도록 하겠습니다.'''
-    results = []
-    
-    en_result = translate_ko_to_en(korean_sentence)
-    ru_result = translate_ko_to_ru(korean_sentence)
-    zh_result = translate_ko_to_zh(korean_sentence)
-    vi_result = translate_ko_to_vi(korean_sentence)
-    
-    results.append(f"Korean → EN: {en_result}")
-    results.append(f"Korean → RU: {ru_result}")
-    results.append(f"Korean → ZH: {zh_result}")
-    results.append(f"Korean → VI: {vi_result}")
-    
-    return results
+Words to translate:
+{words_str}
 
-def run_tests():
-    english_results = test_english_translations()
-    for result in english_results:
-        print(result)
+Return a JSON object where each key is "base|pos" and the value is an object with keys for each target language. Example format:
+{{
+  "word1|POS1": {{"en": "translation", "ru": "перевод", "zh": "翻译", "vi": "bản dịch"}},
+  "word2|POS2": {{"en": "translation", "ru": "перевод", "zh": "翻译", "vi": "bản dịch"}}
+}}
+
+Return only valid JSON, no explanations."""
     
-    print("=" * 60)
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1,
+        response_format={"type": "json_object"}
+    )
     
-    korean_results = test_korean_translations()
-    for result in korean_results:
-        print(result)
+    result_text = response.choices[0].message.content.strip()
+    parsed = json.loads(result_text)
+    
+    translations = {}
+    for base, pos in base_pos_pairs:
+        key = f"{base}|{pos}"
+        if key in parsed:
+            translations[(base, pos)] = parsed[key]
+        else:
+            translations[(base, pos)] = {lang: "" for lang in target_languages}
+    
+    return translations
 
 if __name__ == "__main__":
-    run_tests()
+    text = "Hi! How are you doing?"
+    speaker_lang = "en"
+    listener_lang = "vi"
+    print(translation_api_call(text, speaker_lang, listener_lang))

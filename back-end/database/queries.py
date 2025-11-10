@@ -476,3 +476,21 @@ def update_global_vocab_translation(base: str, pos: str, translation: str, targe
         return False
     finally:
         db_pool.return_connection(conn)
+
+def save_recording(user_id: int, role: str, audio_path: str, transcript: str = None, language: str = None) -> bool:
+    conn = db_pool.get_connection()
+    if not conn:
+        return False
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO recordings (user_id, role, audio_path, transcript, language, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (user_id, role, audio_path, transcript, language, datetime.now()))
+        conn.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        db_pool.return_connection(conn)

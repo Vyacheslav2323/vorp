@@ -9,10 +9,6 @@ import urllib.parse
 import urllib.request
 import pandas as pd
 from datetime import datetime
-try:
-    from deep_translator import GoogleTranslator
-except Exception:
-    GoogleTranslator = None
 
 backend_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, backend_root)
@@ -38,6 +34,13 @@ except Exception as e:
     print("analysis_import_error", str(e), flush=True)
 
 try:
+    from logic.text.translate import translation_api_call, translate_vocab_batch
+except Exception as e:
+    translation_api_call = None
+    translate_vocab_batch = None
+    print("translate_import_error", str(e), flush=True)
+
+try:
     from logic.tss.tss import speak, save_to_file
 except Exception as e:
     speak = None
@@ -46,7 +49,7 @@ except Exception as e:
 
 try:
     from database.connection import db_pool
-    from database.queries import get_user_vocab, get_global_vocab, upsert_global_vocab, increment_global_vocab_count, upsert_user_vocab, get_vocab_translation, record_remember, record_dont_remember, is_admin
+    from database.queries import get_user_vocab, get_global_vocab, upsert_global_vocab, increment_global_vocab_count, upsert_user_vocab, get_vocab_translation, record_remember, record_dont_remember, is_admin, save_recording
     from api.auth import handle_register, handle_login
     from api.middleware import require_auth, create_auth_response
     from api.admin import handle_admin_login, handle_admin_list_users, handle_admin_delete_user, handle_admin_add_user, handle_admin_list_vocab, handle_admin_delete_vocab, handle_admin_update_translation
@@ -63,6 +66,7 @@ except Exception as e:
     handle_admin_list_vocab = None
     handle_admin_delete_vocab = None
     handle_admin_update_translation = None
+    save_recording = None
     print("auth_import_error", str(e), flush=True)
 
 try:
@@ -412,6 +416,28 @@ class SimpleHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
+        elif self.path == '/recording/save':
+            user = require_auth(dict(self.headers)) if require_auth else None
+            if not user:
+                body = json.dumps({'success': False, 'error': 'unauthorized'}).encode('utf-8')
+                self.send_response(401)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self._set_cors()
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            n = int(self.headers.get('Content-Length', 0))
+            b = self.rfile.read(n)
+            out = handle_recording_save(b, user['id'])
+            data = json.dumps(out, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(data)))
+            self._set_cors()
+            self.end_headers()
+            self.wfile.write(data)
+            return
         elif self.path == '/admin/login':
             n = int(self.headers.get('Content-Length', 0))
             b = self.rfile.read(n)
@@ -704,8 +730,10 @@ def handle_translate(b: bytes) -> dict:
     if not text:
         return {'text': '', 'error': 'no_text'}
     try:
-        if GoogleTranslator:
-            result = GoogleTranslator(source=source, target=target).translate(text)
+        if translation_api_call:
+            if source == 'auto':
+                source = 'en'
+            result = translation_api_call(text, source, target)
             return {'text': result, 'error': ''}
         else:
             return {'text': 'Translation service unavailable', 'error': 'no_translator'}
@@ -727,61 +755,6 @@ def handle_analyze(b: bytes) -> dict:
     except Exception as e:
         return {'words': [], 'error': str(e)[:100]}
 
-def get_translation(word: str, existing_translation, target_lang: str = 'en'):
-    if existing_translation:
-        return existing_translation
-    if GoogleTranslator:
-        try:
-            return GoogleTranslator(source='ko', target=target_lang).translate(word)
-        except Exception:
-            return ''
-    return ''
-
-async def translate_base_to_all_languages(base: str, pos: str):
-    global_vocab = get_global_vocab(base, pos) if get_global_vocab else None
-    if not global_vocab:
-        return
-    
-    translations = {
-        'en': global_vocab.get('translation_en'),
-        'ru': global_vocab.get('translation_ru'),
-        'zh': global_vocab.get('translation_zh'),
-        'vi': global_vocab.get('translation_vi')
-    }
-    
-    has_any_translation = any(translations.values())
-    if not has_any_translation:
-        return
-    
-    source_lang = None
-    source_text = None
-    for lang, text in translations.items():
-        if text:
-            source_lang = lang
-            source_text = text
-            break
-    
-    if not source_text or not GoogleTranslator:
-        return
-    
-    def translate_to_lang_sync(target_lang: str):
-        if translations[target_lang]:
-            return
-        try:
-            translated = GoogleTranslator(source=source_lang, target=target_lang).translate(source_text)
-            if translated:
-                upsert_global_vocab(base, pos, translated, '', target_lang)
-        except Exception:
-            pass
-    
-    target_langs = [lang for lang in ['en', 'ru', 'zh', 'vi'] if not translations[lang]]
-    if target_langs:
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        await asyncio.gather(*[loop.run_in_executor(None, translate_to_lang_sync, lang) for lang in target_langs])
 
 def handle_vocab_ingest(b: bytes, user_id: int, native_language: str = 'en') -> dict:
     try:
@@ -793,26 +766,40 @@ def handle_vocab_ingest(b: bytes, user_id: int, native_language: str = 'en') -> 
         return {'success': False, 'error': 'no_text_or_deps'}
     df = save_freq(text)
     df = df.rename(columns={'word': 'base'})[['base','pos','count']]
+    
+    base_pos_pairs = [(str(row['base']), str(row['pos'])) for _, row in df.iterrows()]
+    
+    if not base_pos_pairs:
+        return {'success': False, 'error': 'no_words'}
+    
+    target_languages = ['en', 'ru', 'zh', 'vi']
+    existing_vocab = {}
+    missing_pairs = []
+    
+    for base, pos in base_pos_pairs:
+        global_vocab = get_global_vocab(base, pos) if get_global_vocab else None
+        if global_vocab:
+            existing_vocab[(base, pos)] = global_vocab
+        else:
+            missing_pairs.append((base, pos))
+    
+    translations = {}
+    if missing_pairs and translate_vocab_batch:
+        translations = translate_vocab_batch(text, missing_pairs, target_languages)
+    
     for _, row in df.iterrows():
         base = str(row['base'])
         pos = str(row['pos'])
         count_delta = int(row['count'])
         
-        global_vocab = get_global_vocab(base, pos) if get_global_vocab else None
-        
-        if global_vocab:
+        if (base, pos) in existing_vocab:
             increment_global_vocab_count(base, pos) if increment_global_vocab_count else None
-            existing_translation = get_vocab_translation(base, pos, native_language) if get_vocab_translation else None
-            if not existing_translation:
-                translation = get_translation(base, None, native_language)
-                if translation:
-                    upsert_global_vocab(base, pos, translation, '', native_language) if upsert_global_vocab else None
-            
-            threading.Thread(target=lambda: asyncio.run(translate_base_to_all_languages(base, pos)), daemon=True).start()
         else:
-            existing_translation = get_vocab_translation(base, pos, native_language) if get_vocab_translation else None
-            translation = get_translation(base, existing_translation, native_language)
-            upsert_global_vocab(base, pos, translation, '', native_language) if upsert_global_vocab else None
+            if (base, pos) in translations:
+                trans_dict = translations[(base, pos)]
+                for lang in target_languages:
+                    if lang in trans_dict and trans_dict[lang]:
+                        upsert_global_vocab(base, pos, trans_dict[lang], '', lang) if upsert_global_vocab else None
             
             if generate_audio_file:
                 threading.Thread(target=lambda: generate_audio_and_update(base, pos), daemon=True).start()
@@ -848,6 +835,39 @@ def handle_tts(b: bytes) -> dict:
         except Exception:
             pass
         return {'success': True, 'audio': encoded, 'error': ''}
+    except Exception as e:
+        return {'success': False, 'error': str(e)[:100]}
+
+def handle_recording_save(b: bytes, user_id: int) -> dict:
+    try:
+        j = json.loads(b.decode('utf-8'))
+    except Exception:
+        return {'success': False, 'error': 'bad_json'}
+    audio_base64 = j.get('audio', '')
+    role = str(j.get('role', '')).strip()
+    transcript = str(j.get('transcript', '')).strip() or None
+    language = str(j.get('language', '')).strip() or None
+    if not audio_base64 or not role or save_recording is None:
+        return {'success': False, 'error': 'missing_fields'}
+    try:
+        import uuid
+        audio_data = base64.b64decode(audio_base64)
+        recordings_dir = os.path.join(os.path.dirname(__file__), '..', 'database', 'data', 'recordings')
+        os.makedirs(recordings_dir, exist_ok=True)
+        filename = f'recording_{user_id}_{uuid.uuid4().hex}.webm'
+        audio_path = os.path.join(recordings_dir, filename)
+        with open(audio_path, 'wb') as f:
+            f.write(audio_data)
+        relative_path = f'recordings/{filename}'
+        success = save_recording(user_id, role, relative_path, transcript, language)
+        if success:
+            return {'success': True, 'error': ''}
+        else:
+            try:
+                os.remove(audio_path)
+            except Exception:
+                pass
+            return {'success': False, 'error': 'db_save_failed'}
     except Exception as e:
         return {'success': False, 'error': str(e)[:100]}
 

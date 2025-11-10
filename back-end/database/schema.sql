@@ -40,3 +40,17 @@ CREATE TABLE IF NOT EXISTS vocab (
 
 CREATE INDEX IF NOT EXISTS idx_vocab_user_id ON vocab(user_id);
 CREATE INDEX IF NOT EXISTS idx_vocab_base ON vocab(base);
+
+CREATE TABLE IF NOT EXISTS recordings (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    role VARCHAR(10) NOT NULL,
+    audio_path VARCHAR(500) NOT NULL,
+    transcript TEXT,
+    language VARCHAR(10),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_recordings_user_id ON recordings(user_id);
+CREATE INDEX IF NOT EXISTS idx_recordings_created_at ON recordings(created_at);

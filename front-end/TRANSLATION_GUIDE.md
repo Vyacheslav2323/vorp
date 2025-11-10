@@ -113,3 +113,4 @@ Current translation keys follow this pattern:
 
 To add more languages, add a new object to the `translations` object in `translations.js`.
 
+
