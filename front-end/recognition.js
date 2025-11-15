@@ -1,22 +1,28 @@
 import { translate } from './translation.js';
 import { getBase } from './utils.js';
 import { getAuthToken, getCurrentUser } from './auth.js';
+
+// State management
 let speakRecognition = null;
 let listenRecognition = null;
-let finalTranscript = '';
-let recording = false;
-let currentLang = null;
 let currentElements = null;
 let currentCallback = null;
 let statusUpdateCallback = null;
-let chat = [];
-let interimText = '';
-let currentRole = null;
-let translateTimer = null;
 let nativeLang = null;
+
+// Recording state
+let recording = false;
+let activeMode = null; // 'speak' or 'listen' or null
 let mediaRecorder = null;
 let mediaStream = null;
 let recordedChunks = [];
+let recordingStartTime = null;
+
+// Transcript state
+let chat = [];
+let interimText = '';
+let finalTranscript = '';
+let currentRole = null;
 
 function mapLangToLocale(lang) {
   const mapping = {
@@ -37,13 +43,9 @@ function createRecognition(lang) {
   rec.lang = lang;
   rec.continuous = true;
   rec.interimResults = true;
-  rec.onstart = () => {
-    currentLang = lang;
-    handleStart();
-  };
   rec.onresult = (e) => handleResult(e);
   rec.onerror = (e) => handleError(e);
-  rec.onend = () => handleEnd();
+  rec.onend = () => handleRecognitionEnd();
   return rec;
 }
 
@@ -68,30 +70,111 @@ export function initRecognition(elements, onResultCallback, onStatusUpdate) {
   return { supported: true };
 }
 
-async function handleStart() {
-  recording = true;
-  currentRole = deriveRole({ lang: currentLang });
-  finalTranscript = '';
-  recordedChunks = [];
+async function startRecording() {
+  if (recording) return; // Already recording
+  
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(mediaStream);
+    recordedChunks = [];
+    recordingStartTime = Date.now();
+    
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) {
         recordedChunks.push(e.data);
       }
     };
+    
     mediaRecorder.onstop = () => {
       if (recordedChunks.length > 0) {
         saveRecording();
       }
     };
+    
     mediaRecorder.start();
+    recording = true;
+    console.log('Recording started');
   } catch (e) {
     console.error('Error starting MediaRecorder:', e);
+    if (currentElements?.statusEl) {
+      currentElements.statusEl.textContent = 'Microphone access denied';
+    }
   }
+}
+
+function stopRecording() {
+  if (!recording) return;
+  
+  recording = false;
+  
+  // Stop MediaRecorder
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  
+  // Stop media stream
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+  
+  // Stop all recognition
+  if (speakRecognition) {
+    try {
+      speakRecognition.stop();
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+  if (listenRecognition) {
+    try {
+      listenRecognition.stop();
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+  
+  // Clear interim text
+  interimText = '';
+  chat = clearDraft({ chat, role: currentRole });
+  renderChat({ el: currentElements?.chatEl, chat, interim: '' });
+  
+  console.log('Recording stopped and saved');
+  
   if (statusUpdateCallback) {
     statusUpdateCallback();
+  }
+}
+
+function startRecognition(mode) {
+  const targetRec = mode === 'speak' ? speakRecognition : listenRecognition;
+  if (!targetRec) return;
+  
+  // Clear draft for previous role if switching
+  if (currentRole && currentRole !== mode) {
+    chat = clearDraft({ chat, role: currentRole });
+    interimText = '';
+  }
+  
+  // Stop the other recognition if running
+  if (mode === 'speak' && listenRecognition) {
+    try {
+      listenRecognition.stop();
+    } catch (e) {}
+  } else if (mode === 'listen' && speakRecognition) {
+    try {
+      speakRecognition.stop();
+    } catch (e) {}
+  }
+  
+  // Start the target recognition
+  try {
+    currentRole = mode;
+    targetRec.start();
+    const lang = mode === 'speak' ? mapLangToLocale(nativeLang) : 'ko-KR';
+    console.log(`Recognition started: ${mode} (${lang})`);
+  } catch (e) {
+    console.error(`Error starting ${mode} recognition:`, e);
   }
 }
 
@@ -100,37 +183,56 @@ function handleResult(event) {
   const texts = res.map(r => ({ t: r[0].transcript, f: r.isFinal }));
   const finals = texts.filter(x => x.f).map(x => x.t).join(' ');
   const interims = texts.filter(x => !x.f).map(x => x.t).join(' ');
-  if (finals) finalTranscript = (finalTranscript + ' ' + finals).trim();
-  interimText = interims;
-  const split = splitSentences({ text: finals });
-  let added = [];
-  if (split.sentences.length > 0) {
-    const appended = appendMessages({ chat, role: currentRole, sentences: split.sentences });
-    chat = appended.list;
-    added = appended.indices;
-  } else if (finals) {
-    const appended2 = appendMessages({ chat, role: currentRole, sentences: [finals] });
-    chat = appended2.list;
-    added = appended2.indices;
+  
+  // Update final transcript
+  if (finals) {
+    finalTranscript = (finalTranscript + ' ' + finals).trim();
   }
-  chat = clearDraft({ chat, role: currentRole });
-  renderChat({ el: currentElements.chatEl, chat, interim: interimText });
-  added.forEach(i => translateMessageAt({ index: i }));
-  added.forEach(i => maybeIngestKo(chat[i]));
-  if (currentCallback) currentCallback(finalTranscript);
+  
+  // Update interim text and show immediately
+  interimText = interims;
+  if (interimText) {
+    chat = upsertDraft({ chat, role: currentRole, text: interimText });
+  } else {
+    chat = clearDraft({ chat, role: currentRole });
+  }
+  
+  // Process final results - translate with OpenAI
+  if (finals) {
+    const split = splitSentences({ text: finals });
+    let added = [];
+    
+    if (split.sentences.length > 0) {
+      const appended = appendMessages({ chat, role: currentRole, sentences: split.sentences });
+      chat = appended.list;
+      added = appended.indices;
+    } else if (finals) {
+      const appended2 = appendMessages({ chat, role: currentRole, sentences: [finals] });
+      chat = appended2.list;
+      added = appended2.indices;
+    }
+    
+    // Clear draft after adding final messages
+    chat = clearDraft({ chat, role: currentRole });
+    interimText = '';
+    
+    // Translate each final message with OpenAI
+    added.forEach(i => translateMessageAt({ index: i }));
+    added.forEach(i => maybeIngestKo(chat[i]));
+  }
+  
+  // Render chat with interim results
+  renderChat({ el: currentElements?.chatEl, chat, interim: interimText });
+  
+  if (currentCallback) {
+    currentCallback(finalTranscript);
+  }
 }
 
 function handleError(event) {
-  recording = false;
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-  }
-  if (mediaStream) {
-    mediaStream.getTracks().forEach(track => track.stop());
-    mediaStream = null;
-  }
+  console.error('Recognition error:', event.error);
   
-  if (currentElements.statusEl) {
+  if (currentElements?.statusEl) {
     if (event.error === 'no-speech') {
       currentElements.statusEl.textContent = 'No speech detected';
     } else if (event.error === 'not-allowed') {
@@ -139,44 +241,73 @@ function handleError(event) {
       currentElements.statusEl.textContent = `Error: ${event.error}`;
     }
   }
+  
+  // Don't stop recording on error, just restart recognition
+  if (recording && activeMode) {
+    setTimeout(() => {
+      if (recording && activeMode) {
+        startRecognition(activeMode);
+      }
+    }, 500);
+  }
 }
 
-function handleEnd() {
-  recording = false;
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
+function handleRecognitionEnd() {
+  // If still recording, restart recognition automatically
+  if (recording && activeMode) {
+    setTimeout(() => {
+      if (recording && activeMode) {
+        startRecognition(activeMode);
+      }
+    }, 100);
   }
-  if (mediaStream) {
-    mediaStream.getTracks().forEach(track => track.stop());
-    mediaStream = null;
+}
+
+export function toggleSpeak() {
+  if (!speakRecognition) return;
+  
+  if (recording && activeMode === 'speak') {
+    // Already recording in speak mode - stop and save
+    stopRecording();
+    activeMode = null;
+    finalTranscript = '';
+  } else if (recording && activeMode === 'listen') {
+    // Switch from listen to speak - keep recording, just switch recognition
+    startRecognition('speak');
+    activeMode = 'speak';
+  } else {
+    // Start recording and recognition
+    activeMode = 'speak';
+    startRecording();
+    startRecognition('speak');
   }
-  currentLang = null;
+  
   if (statusUpdateCallback) {
     statusUpdateCallback();
   }
 }
 
-export function toggleSpeak() {
-  if (speakRecognition) {
-    if (recording) {
-      speakRecognition.stop();
-      if (listenRecognition) listenRecognition.stop();
-    } else {
-      if (listenRecognition) listenRecognition.stop();
-      speakRecognition.start();
-    }
-  }
-}
-
 export function toggleListen() {
-  if (listenRecognition) {
-    if (recording) {
-      listenRecognition.stop();
-      if (speakRecognition) speakRecognition.stop();
-    } else {
-      if (speakRecognition) speakRecognition.stop();
-      listenRecognition.start();
-    }
+  if (!listenRecognition) return;
+  
+  if (recording && activeMode === 'listen') {
+    // Already recording in listen mode - stop and save
+    stopRecording();
+    activeMode = null;
+    finalTranscript = '';
+  } else if (recording && activeMode === 'speak') {
+    // Switch from speak to listen - keep recording, just switch recognition
+    startRecognition('listen');
+    activeMode = 'listen';
+  } else {
+    // Start recording and recognition
+    activeMode = 'listen';
+    startRecording();
+    startRecognition('listen');
+  }
+  
+  if (statusUpdateCallback) {
+    statusUpdateCallback();
   }
 }
 
@@ -185,16 +316,16 @@ export function isRecording() {
 }
 
 export function getCurrentLang() {
-  return currentLang;
+  if (activeMode === 'speak') {
+    return mapLangToLocale(nativeLang);
+  } else if (activeMode === 'listen') {
+    return 'ko-KR';
+  }
+  return null;
 }
 
 export function getFinalTranscript() {
   return finalTranscript.trim();
-}
-function deriveRole(arg) {
-  const l = arg.lang || '';
-  const nativeLocale = nativeLang ? mapLangToLocale(nativeLang) : 'en-US';
-  return l.startsWith(nativeLocale.split('-')[0]) ? 'speak' : 'listen';
 }
 
 function splitSentences(arg) {
@@ -247,18 +378,33 @@ function clearDraft(arg) {
 
 function renderChat(arg) {
   const el = arg.el;
-  const list = (arg.chat || []).filter(m => !m.draft);
+  const list = arg.chat || [];
+  const interim = arg.interim || '';
   if (!el) return;
   el.innerHTML = '';
+  
+  // Render all messages including drafts (interim results)
   const nodes = list.map(m => {
     const item = document.createElement('div');
     item.className = `msg ${m.role === 'speak' ? 'left' : 'right'} ${m.draft ? 'draft' : ''}`;
     const bubble = document.createElement('div');
-    bubble.className = `bubble ${m.kind === 'translation' ? 'trans' : ''}`;
+    bubble.className = `bubble ${m.kind === 'translation' ? 'trans' : ''} ${m.draft ? 'interim' : ''}`;
     bubble.textContent = m.text;
     item.appendChild(bubble);
     return item;
   });
+  
+  // If there's interim text and no draft message for current role, show it
+  if (interim && currentRole && !list.some(m => m.role === currentRole && m.draft)) {
+    const item = document.createElement('div');
+    item.className = `msg ${currentRole === 'speak' ? 'left' : 'right'} draft`;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble interim';
+    bubble.textContent = interim;
+    item.appendChild(bubble);
+    nodes.push(item);
+  }
+  
   nodes.forEach(n => el.appendChild(n));
   el.scrollTop = el.scrollHeight;
 }
@@ -267,15 +413,21 @@ async function translateMessageAt(arg) {
   const i = arg.index;
   const m = chat[i];
   if (!m || m.draft) return;
+  
   const s = m.role === 'speak' ? (nativeLang || 'en') : 'ko';
   const t = s === 'ko' ? (nativeLang || 'en') : 'ko';
+  
+  // Translate with OpenAI API
   const r = await translate(m.text, s, t);
   const txt = r && r.text ? r.text : '';
+  
   chat = insertOrReplaceTranslation({ chat, sourceIndex: i, role: m.role, text: txt });
-  renderChat({ el: currentElements.chatEl, chat, interim: interimText });
+  renderChat({ el: currentElements?.chatEl, chat, interim: interimText });
+  
   const after = i + 1;
   maybeIngestKo(chat[after]);
   
+  // Play translation audio
   if (txt) {
     if (m.role === 'listen') {
       playTranslationAudio(txt, nativeLang || 'en');
@@ -284,7 +436,7 @@ async function translateMessageAt(arg) {
     }
   }
 }
- 
+
 function insertOrReplaceTranslation(arg) {
   const list = arg.chat || [];
   const i = arg.sourceIndex;
@@ -306,7 +458,14 @@ function maybeIngestKo(m) {
   if (!isKo) return;
   const token = getAuthToken();
   const base = getBase();
-  fetch(base + '/vocab/ingest', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token ? ('Bearer ' + token) : '' }, body: JSON.stringify({ text: m.text }) });
+  fetch(base + '/vocab/ingest', { 
+    method: 'POST', 
+    headers: { 
+      'Content-Type': 'application/json', 
+      'Authorization': token ? ('Bearer ' + token) : '' 
+    }, 
+    body: JSON.stringify({ text: m.text }) 
+  });
 }
 
 function isVoiceTranslationEnabled() {
@@ -341,14 +500,17 @@ async function playTranslationAudio(text, lang) {
 
 async function saveRecording() {
   if (recordedChunks.length === 0) return;
+  
   const blob = new Blob(recordedChunks, { type: 'audio/webm' });
   const reader = new FileReader();
+  
   reader.onloadend = async () => {
     const base64 = reader.result.split(',')[1];
     const token = getAuthToken();
     const base = getBase();
     const transcript = getFinalTranscript();
-    const lang = currentLang ? currentLang.split('-')[0] : null;
+    const lang = activeMode === 'speak' ? (nativeLang || 'en') : 'ko';
+    
     try {
       await fetch(base + '/recording/save', {
         method: 'POST',
@@ -358,15 +520,17 @@ async function saveRecording() {
         },
         body: JSON.stringify({
           audio: base64,
-          role: currentRole || 'speak',
+          role: activeMode || 'speak',
           transcript: transcript || null,
           language: lang || null
         })
       });
+      console.log('Recording saved to database');
     } catch (e) {
       console.error('Error saving recording:', e);
     }
   };
+  
   reader.readAsDataURL(blob);
   recordedChunks = [];
 }

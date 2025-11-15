@@ -22,13 +22,15 @@ class DatabasePool:
                 print(f"db_init_error (url): {e}", flush=True)
         
         try:
+            # Try to get current user as fallback if DB_USER not set
+            default_user = os.getenv('DB_USER', os.getenv('USER', 'postgres'))
             self.pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn=1,
                 maxconn=10,
                 host=os.getenv('DB_HOST', 'localhost'),
                 port=os.getenv('DB_PORT', '5432'),
                 database=os.getenv('DB_NAME', 'lexipark'),
-                user=os.getenv('DB_USER', 'postgres'),
+                user=default_user,
                 password=os.getenv('DB_PASSWORD', 'lexipark2024')
             )
             print("✓ Database connected to local PostgreSQL", flush=True)
