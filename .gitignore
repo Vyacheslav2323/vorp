@@ -18,6 +18,19 @@ __pycache__/
 *.txt
 *.log
 *.sqlite3
+*.db
+*.sqlite
+
+# Database data directories
+back-end/database/data/recordings/
+back-end/database/data/audio/
+
+# Media files
+*.webm
+*.mp3
+*.wav
+*.ogg
+*.m4a
 
 # Node
 node_modules/
