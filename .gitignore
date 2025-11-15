@@ -1,17 +1,31 @@
+# Virtual environments
+venv/
 .venv/
+.venv
+env/
+ENV/
+
+# Python
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Data files
 *.parquet
 *.csv
 *.txt
 *.log
 *.sqlite3
+
+# Node
 node_modules/
 dist/
 build/
-.DS_Store
-*.pyc
-__pycache__/
+
+# Environment
 .env
-.venv
-node_modules/
+
+# OS
 .DS_Store
