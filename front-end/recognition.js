@@ -74,7 +74,13 @@ async function startRecording() {
   if (recording) return; // Already recording
   
   try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    });
     mediaRecorder = new MediaRecorder(mediaStream);
     recordedChunks = [];
     recordingStartTime = Date.now();

@@ -5,7 +5,8 @@ from .models import User, UserCreate, UserLogin, AuthResult
 import bcrypt
 import jwt
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import math
 
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -169,6 +170,27 @@ def get_all_global_vocab():
     finally:
         db_pool.return_connection(conn)
 
+def normalize_dt(value):
+    if not value:
+        return None
+    if value.tzinfo:
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+    return value
+
+def compute_retention(entry):
+    remember_at = normalize_dt(entry.get('last_remember_at'))
+    if not remember_at:
+        return 0.0
+    remember_count = entry.get('remember_count') or 0
+    if remember_count <= 0:
+        return 0.0
+    dont_count = entry.get('dont_remember_count') or 0
+    now = datetime.utcnow()
+    minutes = max((now - remember_at).total_seconds() / 60, 0)
+    x = minutes / 1440
+    k = remember_count / (dont_count + 1)
+    return math.exp(-10 * x / math.exp(k))
+
 def get_user_vocab(user_id: int, native_language: str = 'en'):
     conn = db_pool.get_connection()
     if not conn:
@@ -181,14 +203,31 @@ def get_user_vocab(user_id: int, native_language: str = 'en'):
     try:
         cursor = conn.cursor()
         cursor.execute(f"""
-            SELECT v.base, g.{translation_col}, v.pos, v.count, v.last_added, g.audio_path
+            SELECT v.base, g.{translation_col}, v.pos, v.count, v.last_added, g.audio_path,
+                   v.remember_count, v.dont_remember_count, v.last_remember_at
             FROM vocab v
             LEFT JOIN global_vocab g ON v.base = g.base AND v.pos = g.pos
             WHERE v.user_id = %s
             ORDER BY v.last_added DESC
         """, (user_id,))
         rows = cursor.fetchall()
-        return [{'base': r[0], 'translation': r[1], 'pos': r[2], 'frequency': r[3], 'last_seen': r[4].isoformat() if r[4] else '', 'audio_path': r[5]} for r in rows]
+        result = []
+        for r in rows:
+            entry = {
+                'base': r[0],
+                'translation': r[1],
+                'pos': r[2],
+                'frequency': r[3],
+                'last_seen': r[4].isoformat() if r[4] else '',
+                'audio_path': r[5],
+                'remember_count': r[6] or 0,
+                'dont_remember_count': r[7] or 0,
+                'last_remember_at': r[8]
+            }
+            entry['retention'] = compute_retention(entry)
+            entry['last_remember_at'] = entry['last_remember_at'].isoformat() if entry['last_remember_at'] else ''
+            result.append(entry)
+        return result
     except Exception:
         return []
     finally:
@@ -335,9 +374,10 @@ def record_remember(user_id: int, base: str, pos: str):
         cursor = conn.cursor()
         cursor.execute("""
             UPDATE vocab 
-            SET remember_count = remember_count + 1
+            SET remember_count = remember_count + 1,
+                last_remember_at = %s
             WHERE user_id = %s AND base = %s AND pos = %s
-        """, (user_id, base, pos))
+        """, (datetime.utcnow(), user_id, base, pos))
         conn.commit()
         return True
     except Exception:

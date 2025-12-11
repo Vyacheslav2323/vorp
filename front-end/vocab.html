@@ -17,10 +17,29 @@
 
     <div class="container">
         <div class="vocab-page">
+            <div class="vocab-chart">
+                <div class="vocab-chart-header">
+                    <div>
+                        <div class="vocab-chart-title" data-i18n="vocab.chart_title">Daily Growth</div>
+                        <div class="vocab-chart-subtitle" data-i18n="vocab.chart_subtitle">Cumulative known words</div>
+                    </div>
+                    <div class="vocab-chart-total">
+                        <span id="vocabChartTotal">0</span>
+                        <span class="vocab-chart-total-label" data-i18n="vocab.chart_total">total words</span>
+                    </div>
+                </div>
+                <div id="vocabChart" class="vocab-chart-canvas"></div>
+                <div class="vocab-chart-footer">
+                    <span id="vocabChartStart" class="chart-date"></span>
+                    <span id="vocabChartEnd" class="chart-date"></span>
+                </div>
+            </div>
             <h2 data-i18n="vocab.title">Your Vocabulary</h2>
             <div class="vocab-header">
                 <button class="v-sort" data-key="base" data-i18n="vocab.word">Word</button>
-                <span data-i18n="vocab.translation">Translation</span>
+                <button class="v-sort" data-key="frequency" data-i18n="vocab.frequency">Frequency</button>
+                <button class="v-sort" data-key="retention" data-i18n="vocab.retention">Retention</button>
+                <button class="v-sort" data-key="translation" data-i18n="vocab.translation">Translation</button>
             </div>
             <div id="vocabList" class="vocab-list"></div>
         </div>

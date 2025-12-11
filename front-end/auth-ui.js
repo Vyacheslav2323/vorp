@@ -4,6 +4,7 @@ import { loadTemplateIntoContainer } from './template-loader.js';
 import { initVocabPage } from './vocab.js';
 import { initLearnPage } from './learn.js';
 import { initMainApp } from './app-init.js';
+import { initDocumentTranslatePage } from './document-translate.js';
 import { t, translatePage } from './translations.js';
 
 export function updateNavbar() {
@@ -16,6 +17,7 @@ export function updateNavbar() {
         <span class="user-name">${t('nav.welcome', { username: user.username })}</span>
         <button class="nav-btn" id="navVocabBtn">${t('nav.vocab')}</button>
         <button class="nav-btn" id="navLearnBtn">${t('nav.learn')}</button>
+        <button class="nav-btn" id="navDocumentBtn">${t('nav.document')}</button>
         <button class="logout-btn-nav" id="navLogoutBtn">${t('nav.logout')}</button>
       </div>
     `;
@@ -31,6 +33,7 @@ export function updateNavbar() {
       window.location.href = 'vocab.html';
     });
     const learnBtn = document.getElementById('navLearnBtn');
+    const documentBtn = document.getElementById('navDocumentBtn');
     learnBtn.addEventListener('click', async () => {
       const container = document.getElementById('mainContainer');
       if (!container) {
@@ -47,6 +50,22 @@ export function updateNavbar() {
         }
       }
     });
+    if (documentBtn) {
+      documentBtn.addEventListener('click', async () => {
+        const container = document.getElementById('mainContainer');
+        if (!container) {
+          window.location.href = 'base.html';
+          return;
+        }
+        try {
+          await loadTemplateIntoContainer('mainContainer', 'document-translate');
+          await initDocumentTranslatePage();
+        } catch (error) {
+          console.error('Error loading document translate page:', error);
+          container.innerHTML = `<div class="error">Error loading document translate page: ${error.message}</div>`;
+        }
+      });
+    }
   } else {
     const selectedLang = localStorage.getItem('selectedLanguage') || 'en';
     navbarAuth.innerHTML = `

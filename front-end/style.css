@@ -83,11 +83,25 @@ form { background: #f8f9fa; padding: 20px; border-radius: 8px; }
 .bubble.trans { background: #fff; border-style: dashed; font-size: 16px; color: #555; }
 
 .vocab-page { display: flex; flex-direction: column; gap: 12px; }
-.vocab-header { display: grid; grid-template-columns: 1fr 120px 160px 1fr; gap: 12px; align-items: center; }
+.vocab-chart { background: #f8f9fa; border: 1px solid #eee; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.vocab-chart-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.vocab-chart-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
+.vocab-chart-subtitle { font-size: 14px; color: #666; }
+.vocab-chart-total { display: flex; align-items: baseline; gap: 6px; font-size: 28px; font-weight: 700; color: #667eea; }
+.vocab-chart-total-label { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #888; }
+.vocab-chart-canvas { width: 100%; height: 200px; }
+.vocab-chart-footer { display: flex; justify-content: space-between; font-size: 12px; color: #999; }
+.chart-date { font-variant-numeric: tabular-nums; }
+.chart-svg { width: 100%; height: 100%; }
+.chart-line { fill: none; stroke: #667eea; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.chart-fill { fill: rgba(102, 126, 234, 0.2); }
+.vocab-chart-empty { text-align: center; padding: 20px; border: 1px dashed #d0d7ff; border-radius: 10px; font-size: 14px; color: #666; }
+.vocab-header { display: grid; grid-template-columns: 1fr 120px 120px 1fr; gap: 12px; align-items: center; }
 .vocab-header .v-sort { padding: 8px 10px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; cursor: pointer; }
 .vocab-list { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
-.vocab-row { display: grid; grid-template-columns: 1fr 120px 160px 1fr; gap: 12px; background: #f8f9fa; padding: 10px 12px; border-radius: 8px; border: 1px solid #eee; }
+.vocab-row { display: grid; grid-template-columns: 1fr 120px 120px 1fr; gap: 12px; background: #f8f9fa; padding: 10px 12px; border-radius: 8px; border: 1px solid #eee; }
 .v-base { font-weight: 700; color: #2c3e50; }
+.v-ret { text-align: right; font-weight: 600; color: #546de5; }
 .v-freq { color: #333; text-align: right; }
 .v-last { color: #666; font-size: 14px; }
 .v-tr { color: #333; }
@@ -132,4 +146,30 @@ form { background: #f8f9fa; padding: 20px; border-radius: 8px; }
   .vocab-card { max-width: 300px; height: 350px; }
   .card-base { font-size: 36px; }
   .card-translation { font-size: 24px; }
+}
+
+.document-translate-page { display: flex; flex-direction: column; gap: 24px; }
+.doc-pane { background: #f8f9fa; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.doc-pane-header { display: flex; flex-direction: column; gap: 12px; }
+.doc-select { width: 220px; align-self: flex-end; }
+.doc-input { min-height: 220px; font-size: 16px; line-height: 1.5; resize: vertical; }
+.doc-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.doc-action-primary { flex: 1; min-width: 160px; }
+.doc-action-secondary { flex: 1; min-width: 140px; background: #f0f2f5; color: #333; }
+.doc-action-secondary:hover { background: #e0e3eb; }
+.doc-status { font-size: 14px; color: #555; font-weight: 500; }
+.doc-section-title { font-size: 18px; font-weight: 600; color: #2c3e50; }
+.doc-translation-box { min-height: 180px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; font-size: 16px; line-height: 1.6; white-space: pre-wrap; color: #2c3e50; }
+.doc-cards-header { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.doc-card-count { font-size: 20px; font-weight: 700; color: #667eea; }
+.doc-cards-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.doc-card { background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.doc-card-word { font-weight: 600; color: #2c3e50; flex: 1; }
+.doc-empty { padding: 20px; border: 1px dashed #c5cae9; border-radius: 12px; text-align: center; color: #666; background: #fff; }
+
+@media (max-width: 768px) {
+  .doc-pane { padding: 16px; }
+  .doc-select { width: 100%; }
+  .doc-actions { flex-direction: column; }
+  .doc-action-primary, .doc-action-secondary { width: 100%; }
 }

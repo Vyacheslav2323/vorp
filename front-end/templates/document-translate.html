@@ -1,0 +1,27 @@
+<div class="document-translate-page">
+    <div class="doc-pane doc-input-pane">
+        <div class="doc-pane-header">
+            <h2 data-i18n="doc.title">Document Translate</h2>
+            <select id="docSourceLang" class="doc-select">
+                <option value="ko" data-i18n="doc.source_ko">Korean input</option>
+                <option value="native" data-i18n="doc.source_native">My language input</option>
+            </select>
+        </div>
+        <textarea id="docInput" class="doc-input" data-i18n-placeholder="doc.input_placeholder"></textarea>
+        <div class="doc-actions">
+            <button id="docTranslateBtn" class="doc-action-primary"><span data-i18n="doc.translate_btn">Translate</span></button>
+            <button id="docClearBtn" class="doc-action-secondary"><span data-i18n="doc.clear_btn">Clear</span></button>
+        </div>
+        <div id="docStatus" class="doc-status" data-i18n="doc.status_idle">Paste text and run translation</div>
+    </div>
+    <div class="doc-pane doc-output-pane">
+        <div class="doc-section-title" data-i18n="doc.translation_title">Translation</div>
+        <div id="docTranslation" class="doc-translation-box"></div>
+        <div class="doc-cards-header">
+            <div class="doc-section-title" data-i18n="doc.cards_title">Word Cards</div>
+            <div class="doc-card-count"><span id="docCardCount">0</span></div>
+        </div>
+        <div id="docCards" class="doc-cards-list"></div>
+    </div>
+</div>
+

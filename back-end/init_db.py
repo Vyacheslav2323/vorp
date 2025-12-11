@@ -54,6 +54,7 @@ def init_database():
             last_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             remember_count INTEGER DEFAULT 0,
             dont_remember_count INTEGER DEFAULT 0,
+            last_remember_at TIMESTAMP,
             PRIMARY KEY (user_id, base, pos),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
@@ -130,6 +131,7 @@ def init_database():
         ALTER TABLE users ADD COLUMN IF NOT EXISTS target_language VARCHAR(10);
         ALTER TABLE vocab ADD COLUMN IF NOT EXISTS remember_count INTEGER DEFAULT 0;
         ALTER TABLE vocab ADD COLUMN IF NOT EXISTS dont_remember_count INTEGER DEFAULT 0;
+        ALTER TABLE vocab ADD COLUMN IF NOT EXISTS last_remember_at TIMESTAMP;
         """
         cursor.execute(alter_sql)
         

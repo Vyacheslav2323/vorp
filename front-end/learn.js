@@ -3,12 +3,14 @@ import { getAuthToken, isAuthenticated } from './auth.js';
 import { loadTemplateIntoContainer } from './template-loader.js';
 import { t, translatePage } from './translations.js';
 
+const RETENTION_LIMIT = 0.85;
 let vocabItems = [];
 let currentIndex = 0;
 let isFlipped = false;
 let card = null;
 let cardWord = null;
 let cardTranslation = null;
+let finishedForToday = false;
 
 export async function initLearnPage() {
   await new Promise(resolve => setTimeout(resolve, 100));
@@ -46,21 +48,18 @@ async function loadVocab() {
         console.error('Authentication failed. Please log in again.');
       }
       vocabItems = [];
+      finishedForToday = false;
       return;
     }
-    vocabItems = Array.isArray(j.items) ? j.items : [];
-    shuffleArray(vocabItems);
+    const rows = Array.isArray(j.items) ? j.items : [];
+    const filtered = filterByRetention(rows);
+    finishedForToday = filtered.length === 0 && rows.length > 0;
+    vocabItems = sortByRetention(filtered);
     currentIndex = 0;
   } catch (e) {
     console.error('Error loading vocab:', e);
     vocabItems = [];
-  }
-}
-
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+    finishedForToday = false;
   }
 }
 
@@ -209,6 +208,19 @@ function bindEvents() {
   });
 }
 
+function retentionValue(row) {
+  const v = Number(row?.retention);
+  return Number.isFinite(v) ? v : 0;
+}
+
+function sortByRetention(list) {
+  return [...list].sort((a, b) => retentionValue(a) - retentionValue(b));
+}
+
+function filterByRetention(list) {
+  return list.filter(item => retentionValue(item) < RETENTION_LIMIT);
+}
+
 function flipCard() {
   if (isFlipped) return;
   isFlipped = true;
@@ -232,17 +244,25 @@ function showNextCard() {
     console.error('Card elements not initialized');
     return;
   }
-  
-  if (vocabItems.length === 0) {
-    cardWord.textContent = t('learn.no_items');
+  if (finishedForToday) {
+    cardWord.textContent = t('learn.done');
+    cardTranslation.textContent = '';
+    cardTranslation.classList.add('hidden');
     return;
   }
-  
-  if (currentIndex >= vocabItems.length) {
-    shuffleArray(vocabItems);
-    currentIndex = 0;
+  if (vocabItems.length === 0) {
+    cardWord.textContent = t('learn.no_items');
+    cardTranslation.textContent = '';
+    cardTranslation.classList.add('hidden');
+    return;
   }
-  
+  if (currentIndex >= vocabItems.length) {
+    finishedForToday = true;
+    cardWord.textContent = t('learn.done');
+    cardTranslation.textContent = '';
+    cardTranslation.classList.add('hidden');
+    return;
+  }
   const item = vocabItems[currentIndex];
   isFlipped = false;
   resetCardPosition();
@@ -287,8 +307,8 @@ async function handleSwipe(direction) {
   setTimeout(() => {
     currentIndex++;
     if (currentIndex >= vocabItems.length) {
-      shuffleArray(vocabItems);
-      currentIndex = 0;
+      currentIndex = vocabItems.length;
+      finishedForToday = true;
     }
     card.style.transition = '';
     showNextCard();

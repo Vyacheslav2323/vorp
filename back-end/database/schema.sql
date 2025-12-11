@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS vocab (
     last_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     remember_count INTEGER DEFAULT 0,
     dont_remember_count INTEGER DEFAULT 0,
+    last_remember_at TIMESTAMP,
     PRIMARY KEY (user_id, base, pos),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
